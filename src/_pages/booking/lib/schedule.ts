@@ -24,7 +24,7 @@ export const START_TIMES = range(DAY_START, DAY_END - MIN_DURATION_MIN, SLOT_STE
 export const END_TIMES = range(DAY_START + MIN_DURATION_MIN, DAY_END, SLOT_STEP_MIN).map(toTime);
 export const HOUR_MARKS = range(DAY_START, DAY_END, 60).map(toTime);
 
-const WEEKEND_MATCHER: Matcher = { dayOfWeek: [0, 6] };
+export const WEEKEND_MATCHER: Matcher = { dayOfWeek: [0, 6] };
 
 export type DayStatus = 'past' | 'weekend' | 'today' | 'future';
 

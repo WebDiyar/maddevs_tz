@@ -14,6 +14,7 @@ import {
 } from '@/entities/booking';
 import { apiErrorMessage, isConflict, isNotFound } from '@/shared/lib/errors';
 import type { ZonedNow } from '@/shared/lib/time';
+import { bookingChangeDetails, bookingDetails } from '../lib/bookingToast';
 import { defaultEnd, isEndDisabled } from '../lib/schedule';
 import { bookingFormSchema } from './bookingForm.schema';
 import type { BookingFormValues, BookingRulesContext } from './bookingForm.schema';
@@ -38,6 +39,7 @@ const initialValues = (editor: BookingEditor): BookingFormValues => {
 
 export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
   const t = useTranslations('booking.form');
+  const tt = useTranslations('booking.toast');
   const locale = useLocale();
   const ignoreId = editor.mode === 'edit' ? editor.booking.id : undefined;
   const text = {
@@ -97,11 +99,14 @@ export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
   const submit = form.handleSubmit(async (values) => {
     try {
       if (editor.mode === 'edit') {
-        await update.mutateAsync({ id: editor.booking.id, ...values });
-        toast.success(t('updated'));
+        const saved = await update.mutateAsync({ id: editor.booking.id, ...values });
+        toast.warning(tt('updated'), {
+          description: bookingChangeDetails(editor.booking, saved, locale, tt),
+          classNames: { description: 'whitespace-pre-line' },
+        });
       } else {
-        await create.mutateAsync(values);
-        toast.success(t('created'));
+        const saved = await create.mutateAsync(values);
+        toast.success(tt('created'), { description: bookingDetails(saved, locale, tt) });
       }
       onSaved(values.date);
     } catch (error) {

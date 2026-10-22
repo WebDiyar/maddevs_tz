@@ -48,19 +48,27 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "conflictHint": "The schedule has been refreshed — pick another time. Your input is kept.",
-    "created": "Booking created",
-    "updated": "Booking saved",
     "gone": "Booking was already deleted",
     "pickDate": "Pick a date",
     "pickStart": "Pick a start time",
     "pickEnd": "Pick an end time",
     "titleTooLong": "At most {max} characters"
   },
+  "toast": {
+    "created": "Booking created",
+    "updated": "Booking updated",
+    "deleted": "Booking deleted",
+    "details": "{date}, {start}–{end}{hasTitle, select, yes { · “{title}”} other {}}",
+    "was": "Was: {details}",
+    "changed": "Changed: {fields}",
+    "fieldDate": "date",
+    "fieldTime": "time",
+    "fieldTitle": "title"
+  },
   "remove": {
     "title": "Delete booking?",
     "confirm": "Delete",
     "cancel": "Cancel",
-    "done": "Booking deleted",
     "alreadyGone": "Booking was already deleted"
   },
   "summary": {
@@ -69,6 +77,13 @@
     "nearest": "next free — {time}",
     "hm": "{hours}h {minutes}m",
     "h": "{hours}h",
-    "m": "{minutes}m"
+    "m": "{minutes}m",
+    "label": "Day summary"
+  },
+  "hotkeys": {
+    "title": "Shortcuts",
+    "days": "previous / next day",
+    "today": "today",
+    "create": "new booking"
   }
 }

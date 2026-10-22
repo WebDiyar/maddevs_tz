@@ -26,7 +26,16 @@ const ZOD_LOCALES = { ru: z.locales.ru(), en: z.locales.en() } satisfies Record<
 const parseBody = <T extends z.ZodType>(schema: T, data: unknown, locale: Locale) =>
   schema.safeParse(data, { error: ZOD_LOCALES[locale].localeError });
 
-const CONFLICT_RATE = Number(process.env.MOCK_CONFLICT_RATE ?? 0.2);
+const DEFAULT_CONFLICT_RATE = 0.2;
+const PERCENT = 100;
+
+const parseConflictRate = (value: string | undefined) => {
+  const rate = Number(value?.replace(',', '.'));
+  if (!value?.trim() || !Number.isFinite(rate) || rate < 0) return DEFAULT_CONFLICT_RATE;
+  return rate > 1 ? Math.min(rate / PERCENT, 1) : rate;
+};
+
+const CONFLICT_RATE = parseConflictRate(process.env.MOCK_CONFLICT_RATE);
 
 const serverT = (locale: Locale) => createTranslator({ locale, messages: MESSAGES[locale] });
 

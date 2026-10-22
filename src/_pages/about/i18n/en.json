@@ -1,95 +1,115 @@
 {
   "metaTitle": "How it works · Meeting room",
   "title": "How it works",
-  "description": "Every requirement of the assignment, the clarifications from the Mad Devs recruiter and the author’s decisions — with how each one is implemented and how to check it.",
+  "description": "A full walkthrough of the Mad Devs test assignment: every requirement, the recruiter’s clarifications and the author’s decisions — what is done, how it works and how to check it.",
   "contents": "Contents",
   "sections": [
+    {
+      "id": "summary",
+      "title": "In short",
+      "items": [
+        "A booking interface for one meeting room during the working day 09:00–18:00 on weekdays: pick a date, see the day timeline, create, edit and delete bookings.",
+        "All 8 business rules of the assignment plus the recruiter’s clarifications are checked by one function — in the form (instantly) and on the mock server (final word).",
+        "Conflict 409 is handled as point 8 requires: a clear message, a refreshed list, no lost input.",
+        "Stack: Next.js 16, TypeScript, Tailwind CSS 4, shadcn/ui, TanStack Query, axios, zod, react-hook-form, zustand, next-intl. Architecture — Feature-Sliced Design.",
+        "Quality: 22 unit tests, 19 e2e scenarios (Playwright, desktop and mobile), axe accessibility checks (WCAG 2 AA), FSD architecture linters."
+      ]
+    },
     {
       "id": "task",
       "title": "1. Task (assignment)",
       "items": [
-        "A meeting room booking interface within a working day. Working hours are 09:00–18:00.",
-        "The user can: pick a date; see existing bookings for that date; choose start and end time; create, edit and delete a booking.",
-        "Display format is up to the developer (list, timeline, slot grid or day calendar). Chosen: a day timeline with booking blocks, a 30-minute grid and a red line for the current time."
+        "Build a meeting room booking interface within a working day. Working hours are 09:00–18:00.",
+        "The user can: pick a date; see existing bookings for that date; choose start and end time; create a booking; edit a booking; delete a booking.",
+        "Display format is up to the developer: list, timeline, slot grid or day calendar. Chosen: a day timeline — booking blocks by time, a 30-minute grid, a red line for the current time.",
+        "Timebox 4–6 hours; deliver: repository, README (how to run, what is done and not, time spent), deployed demo, AI chat log."
       ]
     },
     {
       "id": "features",
       "title": "2. What the app does",
       "items": [
-        "Date selection: ← → arrows by day, a calendar, a “Today” button.",
-        "Bookings of the day on a 09:00–18:00 timeline.",
-        "Create: the “New booking” button (first free time) or a click on a free cell (its time).",
+        "Date selection: ← → by day, a calendar (popover on phones, a month calendar on the left on wide screens), a “Today” button.",
+        "Bookings of the day on a 09:00–18:00 timeline; long titles wrap onto the next lines inside the block.",
+        "Create: the “New booking” button (first free time), a click on a free cell or a mouse-drag range.",
         "Edit: click a booking — date, time and title can be changed; after saving the schedule switches to the booking date.",
-        "Delete: the “Delete” button in the booking form, with confirmation.",
-        "The selected date lives in the URL (/?date=2026-10-23): survives a reload and can be shared.",
-        "Drag on the timeline with the mouse to select a range; it never crosses another booking and is at most 2 hours. On phones — tap a cell.",
-        "Occupied time is disabled in the form: you cannot pick a start or end that would overlap another booking.",
-        "A day summary above the timeline: number of bookings, free time and the next free slot (click opens the form).",
-        "Keyboard shortcuts: ← → previous/next day, T today, N new booking (hints in button tooltips).",
-        "Theme: system, light or dark — a button in the header.",
-        "Neighbouring days are prefetched so the arrows are instant; while a day loads, the previous schedule stays dimmed instead of a skeleton.",
-        "Header with “Schedule” / “How it works” navigation and an RU / EN language switch."
+        "Delete: the “Delete” button in the form, then a confirmation with date, time and title.",
+        "Occupied time is disabled in the form: you cannot pick a start or end that overlaps another booking.",
+        "Day summary: number of bookings, how much time can actually be booked, the next free time (click opens the form).",
+        "The selected date lives in the URL (/?date=2026-10-23): survives a reload, can be shared.",
+        "Keyboard shortcuts: ← → previous/next day, T today, N new booking.",
+        "Language RU (main) and EN, theme — system, light or dark; switches in the header, the choice is remembered.",
+        "Neighbouring days are prefetched — arrows are instant; while a day loads, the previous schedule stays dimmed and inactive.",
+        "A custom 404 page in the interface language."
       ]
     },
     {
       "id": "rules",
       "title": "3. Business rules and their implementation",
       "items": [
-        "1. Start and end are within 09:00–18:00. Options outside the day are not offered; the server responds 422.",
-        "2. start < end. End options before the start are disabled; the server responds 422.",
-        "3. Minimum duration is 30 minutes. Shorter end options are disabled.",
-        "4. Maximum duration is 2 hours. Longer end options are disabled.",
-        "5. Bookings cannot overlap; touching borders is not a conflict: 10:00–11:00 and 11:00–12:00 are fine. An overlap is shown in the form before submitting; the server responds 409.",
-        "6. Past time cannot be booked. A past date is read-only (create button disabled, banner). Today the start is no earlier than the nearest future time on the 15-minute grid: at 14:20 the first available start is 14:30.",
-        "7. When editing, a booking does not conflict with itself.",
-        "8. The server may return 409 even if the UI considered the slot free. The UI shows a clear message in the form, refetches the bookings and keeps the form open — the entered data is preserved.",
-        "Additionally (recruiter clarification): bookings on weekdays only, Mon–Fri. Bookings that have started or ended cannot be changed or deleted — the block shows a lock.",
-        "Time is on a 15-minute step only — in the UI and on the server (10:07 → 422). A non-existent date (Nov 31) → 400.",
-        "All rules are one function shared by the form and the mock server: the form checks instantly, the server has the final word. The rules are covered by unit tests."
+        "1. Start and end within 09:00–18:00. Options outside the day are not offered; the server responds 422.",
+        "2. start < end. Ends before the start are disabled; the server responds 422.",
+        "3. Minimum duration 30 minutes. Shorter is unavailable in the form; the server responds 422.",
+        "4. Maximum duration 2 hours. Longer is unavailable in the form; a mouse drag does not stretch beyond 2 hours.",
+        "5. Bookings cannot overlap; touching borders is fine (10:00–11:00 and 11:00–12:00). Occupied time is disabled in the form; the server responds 409.",
+        "6. Past time cannot be booked. A past date is read-only (create disabled, banner). Today the start is no earlier than the next 15-minute step: at 14:20 the first start is 14:30. Seconds count: a 14:15 booking has started at 14:15:40.",
+        "7. When editing, a booking does not conflict with itself — it is excluded from the overlap check.",
+        "8. The server may return 409 even if the UI considered the slot free. The UI shows a clear message in the form, refetches the bookings (the other booking appears on the timeline) and keeps the form open — input is preserved. The form cannot be closed while saving, so the response is never lost.",
+        "Additionally (recruiter answers): weekdays only (Mon–Fri); 15-minute step (10:07 → 422); bookings that started or ended cannot be changed or deleted (lock on the block, server — 422). A non-existent date (Nov 31) → 400.",
+        "All rules are one function, findRuleViolation, shared by the form and the mock server. It returns a violation code; the text is added in the interface language. The rules are covered by unit tests."
       ]
     },
     {
       "id": "quality",
       "title": "4. “What matters” (assignment)",
       "items": [
-        "Business logic and validation: one rules function + zod schemas for the form and the API; errors are shown under the specific field.",
-        "UI states: loading — a skeleton of the same shape; empty — a hint; error — a message and a “Retry” button; submitting — a spinner and disabled buttons.",
-        "Server errors: 400 (format), 404 (already deleted), 409 (conflict), 422 (rule violated), network down — clear messages in the interface language.",
-        "API and UI are separated: component → hook → entities/booking/api → axios. Server responses are validated with zod.",
-        "Readable TypeScript: strict mode, types inferred from zod; Feature-Sliced Design architecture with automated checks (ESLint, steiger, fsd-check).",
-        "Responsive and accessible: from 360px; labelled buttons and fields for screen readers, keyboard support, focus management in dialogs, clear error messages."
+        "Business logic and validation: one rules function + zod schemas for the form and the API; the error is shown under the specific field and linked to it for screen readers.",
+        "UI states: loading — a skeleton of the same shape; empty — a hint; error — a message and “Retry”; submitting — a spinner and disabled buttons; a failed background refresh keeps the schedule.",
+        "Server errors: 400 (format), 404 (already deleted — toast and refresh), 409 (conflict), 422 (rule violated), offline — clear messages in the interface language, including zod texts.",
+        "API and UI are separated: component → hook → entities/booking/api → axios. Responses are validated with zod. Switching to a real API is the NEXT_PUBLIC_API_BASE_URL variable.",
+        "Readable TypeScript and structure: strict, types inferred from zod, Feature-Sliced Design with automated checks (ESLint layer boundaries, steiger, fsd-check, Tailwind class check).",
+        "Responsive and accessible: layouts for phone, tablet, laptop and monitor (checked at 13 widths 320–2560); keyboard support, focus returns after dialogs close, screen reader labels, WCAG 2 AA contrast (axe in e2e)."
+      ]
+    },
+    {
+      "id": "layout",
+      "title": "5. Layout by screen width",
+      "items": [
+        "Phone (below 640 px): one column — date, full-width “New booking”, banner, summary chips, timeline.",
+        "Tablet (640–1023 px): date navigation and “New booking” on one row.",
+        "Laptop and desktop (1024 px and up): two columns — month calendar, “New booking”, summary and shortcuts on the left; date heading with arrows and the timeline on the right.",
+        "Monitor (1440 px and up): the UI scales smoothly (≈17 px at 1920, ≈19 px at 2560), wider container.",
+        "One markup for all widths: block order changes with Tailwind classes, no duplication."
       ]
     },
     {
       "id": "stack",
-      "title": "5. Stack and mock API (assignment)",
+      "title": "6. Stack and architecture",
       "items": [
-        "Next.js 16 (App Router), React 19, TypeScript.",
-        "Styling and UI: Tailwind CSS 4, shadcn/ui, lucide icons.",
-        "Data: TanStack Query + axios; forms: react-hook-form + zod; screen state: zustand; translations: next-intl.",
-        "Tests: vitest (unit) and Playwright (e2e).",
-        "Mock API — Next.js Route Handlers with in-memory storage. A real backend, auth and database are not required by the assignment.",
-        "The network layer is separated from the UI: switching to a real API is the NEXT_PUBLIC_API_BASE_URL variable."
+        "Next.js 16 (App Router), React 19, strict TypeScript.",
+        "UI: Tailwind CSS 4, shadcn/ui (Radix), lucide icons; theme — next-themes.",
+        "Data: TanStack Query 5 + axios; forms: react-hook-form + zod 4; screen state: zustand; dates: date-fns; translations: next-intl.",
+        "Feature-Sliced Design: app/ — re-exports only; src/_app (providers, header, mock API), src/_pages (booking, about, not-found), src/entities/booking (schemas, requests, rules), src/shared (http, errors, time, UI kit). Translations live in the owning slice.",
+        "Tests: vitest (rules, grid, drag range, summary) and Playwright (CRUD, 409, past date, weekend, load errors, language, 404, shortcuts, mouse drag, theme, accessibility)."
       ]
     },
     {
       "id": "api",
-      "title": "6. API (assignment contract)",
+      "title": "7. Mock API (assignment contract)",
       "items": [
-        "GET /api/bookings?date=YYYY-MM-DD → 200 Booking[]",
+        "GET /api/bookings?date=YYYY-MM-DD → 200 Booking[] | 400",
         "POST /api/bookings → 201 Booking | 400 | 409 | 422",
         "PATCH /api/bookings/:id → 200 Booking | 400 | 404 | 409 | 422",
         "DELETE /api/bookings/:id → 204 | 404 | 422",
         "Booking = { id, date: YYYY-MM-DD, start: HH:mm, end: HH:mm, title? }",
-        "Error: { code, message, field? }. The message is in the language from the Accept-Language header.",
-        "The X-Time-Zone header carries the browser time zone: the server uses it to determine “now” for the past-time rule.",
-        "Dates are checked against the calendar (2026-11-31 → 400); format errors come in the interface language."
+        "Error: { code, message, field? } — 409 overlap, 422 rule violated, 404 deleted, 400 bad format. The text follows Accept-Language.",
+        "X-Time-Zone — the browser time zone: the server uses it to determine “now”.",
+        "Implemented with Next.js Route Handlers and in-memory storage. A real backend, auth and database are not required by the assignment."
       ]
     },
     {
       "id": "recruiter",
-      "title": "7. Clarifications from the Mad Devs recruiter",
+      "title": "8. Clarifications from the Mad Devs recruiter",
       "qa": [
         {
           "q": "Which time zone defines working hours and past time?",
@@ -100,7 +120,7 @@
           "a": "Mon–Fri only."
         },
         {
-          "q": "It is 14:20 — can a booking start at 14:20 or at the nearest future time?",
+          "q": "It is 14:20 — start at 14:20 or at the nearest future time?",
           "a": "The nearest future time (14:30)."
         },
         {
@@ -116,6 +136,14 @@
           "a": "Everything can be changed."
         },
         {
+          "q": "Is a random 409 from the mock server fine to demonstrate the conflict?",
+          "a": "Up to the developer."
+        },
+        {
+          "q": "Keep data in memory if it resets after a restart?",
+          "a": "Up to the developer."
+        },
+        {
           "q": "Should public holidays be taken into account?",
           "a": "Not required."
         },
@@ -124,56 +152,69 @@
           "a": "As an .md file."
         },
         {
-          "q": "Random 409 in the mock, in-memory storage, a documentation page, auth, language, tests, booking horizon, extra features?",
+          "q": "Documentation, auth, language, tests, booking horizon, extra features?",
           "a": "Up to the developer."
         }
       ]
     },
     {
       "id": "decisions",
-      "title": "8. Author’s decisions",
+      "title": "9. Author’s decisions",
       "items": [
         "No authentication (assignment: “auth is not required”): any user can change or delete any booking.",
-        "Booking time is stored without a time zone (HH:mm) — all users are in one office. The browser time zone defines “now” and is sent to the server.",
-        "Public holidays are ignored; there is no booking horizon limit.",
-        "Conflict 409 is reproducible: the mock server returns 409 for about every fifth create (MOCK_CONFLICT_RATE=0.2) and puts a “Taken by a colleague” booking on that time.",
-        "Data is stored in server memory and resets on restart — enough for a demo.",
-        "Important for the Vercel demo: the server runs as several independent instances, each with its own memory. Two consecutive requests may hit different instances — a booking you just created may sometimes “disappear” after a refresh or reappear. This is a limitation of the mock storage, not of the app logic; with a real backend or shared storage (Redis/DB) it does not happen.",
-        "Language: Russian (main) and English, a switch in the header, the choice is remembered; the server responds in the interface language.",
-        "Booking title is optional, up to 80 characters.",
-        "Tests: unit — business rules; e2e — create, edit, delete, conflict 409, load error, past date, weekend, language.",
-        "This documentation page — requested by the author, agreed with the recruiter."
+        "Booking time is stored without a time zone (HH:mm) — everyone is in one office; the browser zone defines “now” and is sent to the server.",
+        "Holidays are ignored, no booking horizon limit, the title is optional (up to 80 characters).",
+        "Conflict 409 is reproducible: the mock returns 409 for about every fifth create (MOCK_CONFLICT_RATE=0.2) and puts a “Taken by a colleague” booking there. It is a simulation, not a bug.",
+        "Data lives in server memory. On Vercel the server runs as several instances with their own memory, so a booking may occasionally “disappear” after a refresh; a real backend does not have this.",
+        "Saving waits for the server (no optimistic display), deleting goes through a confirmation — point 8 is handled more reliably this way.",
+        "Beyond the assignment: RU/EN, dark theme, date in the URL, mouse-drag selection, day summary, keyboard shortcuts, day prefetching, responsive layout up to 2560 px, this documentation page.",
+        "Tests: unit — rules and calculations; e2e — all key scenarios and accessibility."
       ]
     },
     {
       "id": "check",
-      "title": "9. How to check manually",
+      "title": "10. How to check manually",
       "items": [
-        "Create: click a free cell → the form opens with that time → “Book”.",
+        "Create: click a free cell (or drag a range with the mouse) → the form with that time → “Book”.",
         "Edit: click a booking → change date, time or title → “Save”.",
         "Delete: click a booking → “Delete” → confirm.",
-        "Range select: press the mouse on free time and drag up or down — a frame shows the range, releasing opens the form.",
-        "URL date: switch to another day and reload — the day is kept.",
-        "Keys: ← → T N on the schedule page.",
-        "Note: the random 409 is a simulation, not a bug. If creating a booking shows “taken by another user”, that is intended — retry with another time.",
-        "Conflict 409: create bookings — about every fifth gets 409. The message appears in the form, a “Taken by a colleague” booking appears on the timeline, your input stays.",
-        "Overlap: pick a time taken by another booking — an error under the field before submitting.",
+        "Conflict 409: create bookings — about every fifth gets 409; the message appears in the form, “Taken by a colleague” appears on the timeline, your input stays. It is a simulation, not a bug.",
+        "Overlap: occupied time is disabled in the form; through the API — 409.",
         "Past time: ← to yesterday — read-only; today past cells are grey.",
-        "Weekends: go to Saturday with the arrows — a “Weekend” banner, creation disabled.",
+        "Weekends: go to Saturday — a “Weekend” banner, creation disabled.",
         "Load error: enable Offline in DevTools and change the date — “Retry” appears.",
-        "Language: the RU / EN switch in the header; the choice survives a reload."
+        "URL: switch to another day and reload — the day is kept.",
+        "Keys ← → T N, language and theme switches in the header; resize the window from phone to monitor."
+      ]
+    },
+    {
+      "id": "limits",
+      "title": "11. Limitations and next steps",
+      "items": [
+        "In-memory storage: resets on restart and is not shared between Vercel instances. Next step — Redis or a database.",
+        "No optimistic updates: a booking appears after the server responds (~0.4 s).",
+        "One room, no week view — the assignment asks for a day calendar.",
+        "CI (GitHub Actions with linters, unit and e2e) — next step."
       ]
     },
     {
       "id": "delivery",
-      "title": "10. Delivery (assignment)",
+      "title": "12. Delivery (assignment)",
       "items": [
-        "Repository link.",
-        "README: how to run, what is done and what is not, how long it took.",
-        "Deployed demo (Vercel).",
-        "AI chat — the docs/ai-chat.md file.",
-        "Timebox — 4–6 hours; anything unfinished goes to the README with priorities."
+        "Repository, README, deployed demo and AI chat — links below.",
+        "Time: about 4 hours of work with AI plus clarifications with the recruiter (within the 4–6 h timebox)."
       ]
+    },
+    {
+      "id": "links",
+      "title": "Links",
+      "links": {
+        "github": "GitHub repository",
+        "demo": "Demo on Vercel",
+        "readme": "README",
+        "chat": "AI chat (docs/ai-chat.md)",
+        "telegram": "Author’s Telegram"
+      }
     }
   ]
 }

@@ -48,19 +48,27 @@
     "cancel": "Отмена",
     "delete": "Удалить",
     "conflictHint": "Список броней обновлён — выберите другое время. Введённые данные сохранены.",
-    "created": "Бронь создана",
-    "updated": "Бронь сохранена",
     "gone": "Бронь уже удалена",
     "pickDate": "Выберите дату",
     "pickStart": "Выберите время начала",
     "pickEnd": "Выберите время окончания",
     "titleTooLong": "Не длиннее {max} символов"
   },
+  "toast": {
+    "created": "Бронь создана",
+    "updated": "Бронь изменена",
+    "deleted": "Бронь удалена",
+    "details": "{date}, {start}–{end}{hasTitle, select, yes { · «{title}»} other {}}",
+    "was": "Было: {details}",
+    "changed": "Изменено: {fields}",
+    "fieldDate": "дата",
+    "fieldTime": "время",
+    "fieldTitle": "название"
+  },
   "remove": {
     "title": "Удалить бронь?",
     "confirm": "Удалить",
     "cancel": "Отмена",
-    "done": "Бронь удалена",
     "alreadyGone": "Бронь уже была удалена"
   },
   "summary": {
@@ -69,6 +77,13 @@
     "nearest": "ближайшее свободное — {time}",
     "hm": "{hours} ч {minutes} мин",
     "h": "{hours} ч",
-    "m": "{minutes} мин"
+    "m": "{minutes} мин",
+    "label": "Сводка дня"
+  },
+  "hotkeys": {
+    "title": "Клавиши",
+    "days": "день назад / вперёд",
+    "today": "сегодня",
+    "create": "новая бронь"
   }
 }

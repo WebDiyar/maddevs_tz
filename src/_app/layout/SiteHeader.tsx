@@ -15,7 +15,7 @@ export const SiteHeader = () => {
 
   return (
     <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between gap-2 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-page 2xl:max-w-page-wide items-center justify-between gap-2 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold">
           <CalendarClockIcon aria-hidden className="size-5" />
           <span className="max-sm:sr-only">{t('brand')}</span>

@@ -48,7 +48,7 @@ export const DatePicker = ({
           aria-describedby={describedBy}
           className={cn('min-w-0 justify-start', className)}
         >
-          <CalendarIcon />
+          <CalendarIcon className="max-[380px]:hidden" />
           <span className="truncate first-letter:uppercase sm:hidden">
             {formatShortDate(value, locale)}
           </span>

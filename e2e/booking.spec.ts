@@ -113,7 +113,7 @@ test('страница документации из шапки @smoke', async (
   await page.getByRole('link', { name: 'Как это работает' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Как это работает' })).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: '7. Уточнения от рекрутера Mad Devs' }),
+    page.getByRole('heading', { name: '8. Уточнения от рекрутера Mad Devs' }),
   ).toBeVisible();
 });
 

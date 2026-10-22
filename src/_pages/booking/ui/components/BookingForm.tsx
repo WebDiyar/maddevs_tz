@@ -41,7 +41,8 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
     onClose,
   });
   const t = useTranslations('booking.form');
-  const { errors, isSubmitting } = form.formState;
+  const { errors, isSubmitting, isDirty } = form.formState;
+  const isEdit = editor.mode === 'edit';
 
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-5" aria-busy={isSubmitting}>
@@ -169,7 +170,7 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
               {t('cancel')}
             </Button>
           </DialogClose>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting || (isEdit && !isDirty)}>
             {isSubmitting && <Spinner />}
             {editor.mode === 'edit' ? t('submitEdit') : t('submitCreate')}
           </Button>

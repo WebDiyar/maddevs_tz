@@ -6,6 +6,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ==================== ТЕМА → КЛАССЫ TAILWIND ==================== */
+@theme {
+  --container-page: 72rem;
+  --container-page-wide: 84rem;
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-inter);
@@ -155,6 +160,14 @@
   }
   html {
     @apply font-sans;
+    font-size: clamp(1rem, 0.75rem + 0.2778vw, 1.25rem);
+    /* sticky-шапка (h-14) не перекрывает цель якорной ссылки */
+    scroll-padding-top: 5rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
   html[data-locale-pending] body {
     visibility: hidden;
