@@ -8,9 +8,11 @@ type State = {
   setLocale: (locale: Locale) => void;
 };
 
+export const LOCALE_STORAGE_KEY = 'booking-locale';
+
 export const useLocaleStore = create<State>()(
   persist((set) => ({ locale: DEFAULT_LOCALE, setLocale: (locale) => set({ locale }) }), {
-    name: 'booking-locale',
+    name: LOCALE_STORAGE_KEY,
     skipHydration: true,
   }),
 );

@@ -1,9 +1,5 @@
 import { toMinutes, toTime, weekday } from '@/shared/lib/time';
 import type { ZonedNow } from '@/shared/lib/time';
-import { DEFAULT_LOCALE } from '@/shared/config';
-import type { Locale } from '@/shared/config';
-import { MESSAGES } from '@/shared/i18n';
-import { createTranslator } from 'next-intl';
 
 export const WORKDAY_START = '09:00';
 export const WORKDAY_END = '18:00';
@@ -21,7 +17,8 @@ export type RuleViolationCode =
   | 'PAST_DATE'
   | 'WEEKEND'
   | 'PAST_TIME'
-  | 'OUTSIDE_WORKDAY'
+  | 'START_OUTSIDE_WORKDAY'
+  | 'END_OUTSIDE_WORKDAY'
   | 'START_NOT_BEFORE_END'
   | 'TOO_SHORT'
   | 'TOO_LONG'
@@ -30,14 +27,13 @@ export type RuleViolationCode =
 export type RuleViolation = {
   code: RuleViolationCode;
   field: 'date' | 'start' | 'end';
-  message: string;
+  params?: Record<string, string | number>;
 };
 
 type RuleContext = {
   bookings: readonly ExistingBooking[];
   now: ZonedNow;
   ignoreId?: string;
-  locale?: Locale;
 };
 
 export const isWorkday = (date: string) => !WEEKEND_DAYS.has(weekday(date));
@@ -59,47 +55,41 @@ export const findRuleViolation = (
 ): RuleViolation | null => {
   const start = toMinutes(slot.start);
   const end = toMinutes(slot.end);
-  const { now, locale = DEFAULT_LOCALE } = context;
-  const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: 'rules' });
-  const violation = (code: RuleViolationCode, field: RuleViolation['field'], message: string) => ({
-    code,
-    field,
-    message,
-  });
+  const { now } = context;
 
-  if (slot.date < now.date) return violation('PAST_DATE', 'date', t('pastDate'));
-  if (!isWorkday(slot.date)) return violation('WEEKEND', 'date', t('weekend'));
+  if (slot.date < now.date) return { code: 'PAST_DATE', field: 'date' };
+  if (!isWorkday(slot.date)) return { code: 'WEEKEND', field: 'date' };
   if (start < toMinutes(WORKDAY_START) || start >= toMinutes(WORKDAY_END)) {
-    return violation(
-      'OUTSIDE_WORKDAY',
-      'start',
-      t('startOutside', { from: WORKDAY_START, to: WORKDAY_END }),
-    );
+    return {
+      code: 'START_OUTSIDE_WORKDAY',
+      field: 'start',
+      params: { from: WORKDAY_START, to: WORKDAY_END },
+    };
   }
   if (end > toMinutes(WORKDAY_END)) {
-    return violation('OUTSIDE_WORKDAY', 'end', t('endOutside', { to: WORKDAY_END }));
+    return { code: 'END_OUTSIDE_WORKDAY', field: 'end', params: { to: WORKDAY_END } };
   }
-  if (start >= end) return violation('START_NOT_BEFORE_END', 'end', t('startNotBeforeEnd'));
+  if (start >= end) return { code: 'START_NOT_BEFORE_END', field: 'end' };
   if (end - start < MIN_DURATION_MIN) {
-    return violation('TOO_SHORT', 'end', t('tooShort', { minutes: MIN_DURATION_MIN }));
+    return { code: 'TOO_SHORT', field: 'end', params: { minutes: MIN_DURATION_MIN } };
   }
   if (end - start > MAX_DURATION_MIN) {
-    return violation('TOO_LONG', 'end', t('tooLong', { hours: MAX_DURATION_MIN / 60 }));
+    return { code: 'TOO_LONG', field: 'end', params: { hours: MAX_DURATION_MIN / 60 } };
   }
   if (slot.date === now.date && start < now.minutes) {
-    return violation('PAST_TIME', 'start', t('pastTime', { now: toTime(now.minutes) }));
+    return { code: 'PAST_TIME', field: 'start', params: { now: toTime(now.minutes) } };
   }
   const conflict = findConflict(slot, context);
   if (conflict) {
-    return violation(
-      'CONFLICT',
-      'start',
-      t('conflict', {
+    return {
+      code: 'CONFLICT',
+      field: 'start',
+      params: {
         time: `${conflict.start}–${conflict.end}`,
         hasTitle: conflict.title ? 'yes' : 'no',
         title: conflict.title ?? '',
-      }),
-    );
+      },
+    };
   }
   return null;
 };

@@ -1,0 +1,61 @@
+{
+  "page": {
+    "title": "Meeting room",
+    "description": "Weekdays 09:00–18:00, bookings from 30 minutes to 2 hours",
+    "create": "New booking",
+    "schedule": "Schedule",
+    "pastDay": "This date is in the past — bookings are read-only.",
+    "weekend": "Weekend — the room is available on weekdays only (Mon–Fri).",
+    "dayOver": "The working day is over — pick another date.",
+    "emptyTitle": "No bookings for this day",
+    "emptyDescription": "The room is free — pick a time on the schedule or press “New booking”.",
+    "loadError": "Could not load bookings",
+    "retry": "Retry",
+    "refreshing": "Refreshing…",
+    "fullyBooked": "No free time left on this day — pick another date.",
+    "metaTitle": "Schedule · Meeting room"
+  },
+  "nav": {
+    "label": "Date selection",
+    "prev": "Previous day",
+    "next": "Next day",
+    "today": "Today"
+  },
+  "schedule": {
+    "free": "Free time",
+    "bookings": "Bookings",
+    "bookFrom": "Book from {time}",
+    "edit": "Edit booking {time}, {title}",
+    "untitled": "Untitled",
+    "locked": " — already started, cannot be changed"
+  },
+  "form": {
+    "createTitle": "New booking",
+    "editTitle": "Edit booking",
+    "description": "Weekdays 09:00–18:00, from 30 minutes to 2 hours",
+    "date": "Date",
+    "start": "Start",
+    "end": "End",
+    "title": "Title",
+    "titlePlaceholder": "E.g. “Client call”",
+    "submitCreate": "Book",
+    "submitEdit": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "conflictHint": "The schedule has been refreshed — pick another time. Your input is kept.",
+    "created": "Booking created",
+    "updated": "Booking saved",
+    "gone": "Booking was already deleted",
+    "pickDate": "Pick a date",
+    "pickStart": "Pick a start time",
+    "pickEnd": "Pick an end time",
+    "titleTooLong": "At most {max} characters"
+  },
+  "remove": {
+    "title": "Delete booking?",
+    "confirm": "Delete",
+    "cancel": "Cancel",
+    "done": "Booking deleted",
+    "alreadyGone": "Booking was already deleted"
+  }
+}

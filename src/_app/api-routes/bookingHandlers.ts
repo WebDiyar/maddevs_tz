@@ -5,22 +5,25 @@ import {
   bookingPatchSchema,
   findRuleViolation,
   hasStarted,
+  ruleMessage,
 } from '@/entities/booking';
 import type { Booking, BookingInput } from '@/entities/booking';
 import { TIME_ZONE_HEADER } from '@/shared/config';
 import type { Locale } from '@/shared/config';
-import { MESSAGES } from '@/shared/i18n';
 import { DATE_PATTERN, zonedNow } from '@/shared/lib/time';
 import { apiError, readJson, requestLocale, requestTimeZone, simulateLatency } from './apiResponse';
 import { bookingStore, bookingsOn } from './bookingStore';
+import en from './i18n/en.json';
+import ru from './i18n/ru.json';
 
 type IdContext = { params: Promise<{ id: string }> };
 type Slot = Omit<Booking, 'id'>;
 
+const MESSAGES = { ru, en } satisfies Record<Locale, typeof ru>;
+
 const CONFLICT_RATE = Number(process.env.MOCK_CONFLICT_RATE ?? 0.2);
 
-const serverT = (locale: Locale) =>
-  createTranslator({ locale, messages: MESSAGES[locale], namespace: 'server' });
+const serverT = (locale: Locale) => createTranslator({ locale, messages: MESSAGES[locale] });
 
 const requestContext = (request: Request) => {
   const locale = requestLocale(request);
@@ -50,12 +53,11 @@ const validate = (slot: Slot, timeZone: string, locale: Locale, ignoreId?: strin
     bookings: bookingsOn(slot.date),
     now: zonedNow(timeZone),
     ignoreId,
-    locale,
   });
   if (!violation) return null;
   return apiError(
     violation.code === 'CONFLICT' ? 'CONFLICT' : 'RULE_VIOLATION',
-    violation.message,
+    ruleMessage(violation, locale),
     violation.field,
   );
 };

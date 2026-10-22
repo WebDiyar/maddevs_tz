@@ -35,6 +35,9 @@ test('создание, редактирование и удаление бро�
 
   await updated.click();
   await dialog.getByRole('button', { name: 'Удалить' }).click();
+  await expect(page.getByRole('alertdialog')).toContainText(
+    /[а-я]+, \d+ [а-я]+ \d{4}, 16:00–17:00/,
+  );
   await page.getByRole('alertdialog').getByRole('button', { name: 'Удалить' }).click();
   await expect(page.getByText('Бронь удалена')).toBeVisible();
   await expect(updated).toHaveCount(0);
@@ -92,8 +95,10 @@ test('ошибка загрузки и повтор', async ({ page }) => {
 });
 
 test('переключение языка сохраняется @smoke', async ({ page }) => {
+  await expect(page).toHaveTitle('Расписание · Переговорная');
   await page.getByRole('button', { name: 'EN' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Meeting room' })).toBeVisible();
+  await expect(page).toHaveTitle('Schedule · Meeting room');
 
   await page.reload();
   await expect(page.getByRole('heading', { level: 1, name: 'Meeting room' })).toBeVisible();

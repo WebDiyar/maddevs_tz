@@ -6,9 +6,10 @@ import { ThemeProvider } from 'next-themes';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { makeQueryClient } from '@/shared/api';
-import { MESSAGES } from '@/shared/i18n';
+import { MESSAGES } from '@/_app/i18n';
 import { useLocaleStore } from '@/shared/model';
 import { Toaster } from '@/shared/ui/sonner';
+import { LOCALE_PENDING_ATTR } from './localeScript';
 
 type Props = {
   children: ReactNode;
@@ -26,6 +27,9 @@ export const AppProviders = ({ children }: Props) => {
 
   useEffect(() => {
     document.documentElement.lang = locale;
+    if (useLocaleStore.persist.hasHydrated() && useLocaleStore.getState().locale === locale) {
+      document.documentElement.removeAttribute(LOCALE_PENDING_ATTR);
+    }
   }, [locale]);
 
   return (

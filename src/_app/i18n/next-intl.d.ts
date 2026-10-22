@@ -1,5 +1,5 @@
 import type { Locale } from '@/shared/config';
-import type { Messages } from './index';
+import type { Messages } from './messages';
 
 declare module 'next-intl' {
   interface AppConfig {

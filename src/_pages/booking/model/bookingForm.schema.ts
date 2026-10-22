@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BOOKING_TITLE_MAX, findRuleViolation } from '@/entities/booking';
+import { BOOKING_TITLE_MAX, findRuleViolation, ruleMessage } from '@/entities/booking';
 import type { Booking } from '@/entities/booking';
 import type { Locale } from '@/shared/config';
 import { DATE_PATTERN, TIME_PATTERN } from '@/shared/lib/time';
@@ -20,7 +20,7 @@ export type BookingRulesContext = {
   text: { pickDate: string; pickStart: string; pickEnd: string; titleTooLong: string };
 };
 
-export const bookingFormSchema = ({ text, ...context }: BookingRulesContext) =>
+export const bookingFormSchema = ({ text, locale, ...context }: BookingRulesContext) =>
   z
     .object({
       date: z.string().regex(DATE_PATTERN, text.pickDate),
@@ -31,6 +31,10 @@ export const bookingFormSchema = ({ text, ...context }: BookingRulesContext) =>
     .superRefine((values, ctx) => {
       const violation = findRuleViolation(values, context);
       if (violation) {
-        ctx.addIssue({ code: 'custom', path: [violation.field], message: violation.message });
+        ctx.addIssue({
+          code: 'custom',
+          path: [violation.field],
+          message: ruleMessage(violation, locale),
+        });
       }
     });

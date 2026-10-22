@@ -22,9 +22,10 @@ src/
 ├── _app/
 │   ├── layout/                   RootLayout, SiteHeader (навигация + LocaleSwitch RU/EN, nav.config.ts),
 │   │                             AppProviders (NextIntlClientProvider, QueryClient, тема, Toaster), metadata
-│   ├── api-routes/               mock-бэкенд: обработчики, in-memory store, формат ошибок
+│   ├── api-routes/               mock-бэкенд: обработчики, in-memory store, формат ошибок, i18n/ (тексты ответов)
+│   ├── i18n/                     header-тексты + сборка MESSAGES из слайсов, типы AppConfig (next-intl.d.ts)
 │   └── styles/globals.css        токены темы shadcn (:root / .dark)
-├── _pages/about/                 документация для проверяющего: ТЗ, ответы рекрутера, решения (текст — в messages *.about)
+├── _pages/about/                 документация для проверяющего: ТЗ, ответы рекрутера, решения (текст — `_pages/about/i18n/*.json`)
 ├── _pages/booking/               экран бронирования
 │   ├── ui/BookingPage.tsx        композер: шапка → DateNav → зона данных → диалоги
 │   ├── ui/components/*           DateNav, DatePicker, DaySchedule, BookingBlock, BookingForm(+Dialog), DeleteBookingDialog, TimeSelect
@@ -38,7 +39,6 @@ src/
     ├── api/                      http (axios, baseURL из env), makeQueryClient
     ├── config/                   API_BASE_URL, TIME_ZONE_HEADER, таймауты, staleTime
     ├── lib/errors|time           apiErrorMessage/hasStatus/shouldRetryQuery; HH:mm ↔ минуты, zonedNow
-    ├── i18n/                     messages/ru.json + en.json (next-intl), MESSAGES, типы AppConfig (next-intl.d.ts)
     ├── model/                    useZonedNow («сейчас» в поясе браузера), useLocaleStore (язык, localStorage)
     └── ui/                       shadcn (kebab-файлы) + QueryZone
 ```
@@ -101,7 +101,7 @@ src/
 - Горизонт бронирования не ограничен, праздники не учитываются. `title` необязателен, до 80 символов.
 - Язык: русский (основной) + английский, переключатель RU/EN в шапке, выбор в localStorage. Сервер отвечает на языке из `Accept-Language`.
 - Тесты: unit (vitest, бизнес-правила) + e2e (Playwright).
-- Страница документации `/about` — полный разбор ТЗ, ответы рекрутера и эти решения. Меняем решение → правим и её (`messages/*.json → about`).
+- Страница документации `/about` — полный разбор ТЗ, ответы рекрутера и эти решения. Меняем решение → правим и её (`_pages/about/i18n/*.json`).
 
 ## 3. Нефункциональные требования ТЗ («что важно показать»)
 
@@ -160,16 +160,23 @@ serverless-инстансами Vercel). Сид: 2 брони на ближай�
 - [ ] Ссылка на репозиторий
 - [ ] README: как запустить, что сделано / не сделано, сколько времени заняло
 - [ ] Deployed demo (Vercel) — при деплое помнить про in-memory store (§3.5)
-- [ ] Переписка с AI — файлом `.md`: в конце работы `/export docs/ai-chat.md` в Claude Code
+- [x] Переписка с AI — `docs/ai-chat.md` (сгенерирован из лога сессии; перед сдачей обновить: `/export` или повторный экспорт)
 - Таймбокс 4–6 ч. Не успеваем — в README приоритеты и что бы доделали.
 
 ## 5. Переводы (next-intl)
 
-- Все тексты UI, правил и сервера — в `src/shared/i18n/messages/ru.json` и `en.json`, ключи одинаковые
-  (TS проверяет: `MESSAGES: Record<Locale, typeof ru>`). Новый текст — сразу в оба файла.
+- Переводы живут в слайсе-владельце, сегмент `i18n/{ru,en}.json` (FSD: `shared` не знает тексты страниц):
+  `_pages/booking/i18n`, `_pages/about/i18n`, `_app/i18n` (шапка), `_app/api-routes/i18n` (ответы mock),
+  `entities/booking/i18n` (тексты нарушений по коду), `shared/lib/errors/i18n` (сетевые ошибки).
+- Провайдер получает `MESSAGES` из `_app/i18n/messages.ts`: `header` + `booking` + `about` (слайсы отдают их через `index.ts`).
+  Типы ключей — `AppConfig` в `_app/i18n/next-intl.d.ts`; разные ключи в ru/en ловит `satisfies Record<Locale, typeof ru>`.
+- Правила (`findRuleViolation`) возвращают только `{ code, field, params }`; текст — `ruleMessage(violation, locale)`.
+  Тесты правил проверяют коды, а не строки.
 - Компоненты: `useTranslations('booking.form')`; вне React (правила, сервер, `apiErrorMessage`) — `createTranslator`.
 - Формат ICU: переменные `{time}`, условия `{hasTitle, select, yes {…} other {}}`. Не использовать ASCII-апостроф `'` (экранирование ICU) — писать `’`.
 - Язык выбирается на клиенте (`useLocaleStore`, `skipHydration` → первый рендер на русском), `<html lang>` синхронизируется, axios шлёт его в `Accept-Language`.
+  Без мигания: инлайн-скрипт `_app/layout/localeScript.ts` ставит `data-locale-pending`, если сохранён не русский, — `body` скрыт, пока провайдер не перейдёт на нужный язык.
+- Заголовок вкладки — React `<title>{t('metaTitle')}</title>` в компоненте страницы (переводится), в `metadata` только `description`.
 
 ## 6. Как работать в проекте
 

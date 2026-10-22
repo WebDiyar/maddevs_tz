@@ -50,19 +50,32 @@ export const isEndDisabled = (end: string, start: string) => {
 export const defaultEnd = (start: string) =>
   toTime(Math.min(toMinutes(start) + DEFAULT_DURATION_MIN, DAY_END));
 
+const isStartFree = (from: number, date: string, now: ZonedNow, bookings: readonly Booking[]) =>
+  !isPastStart(from, date, now) &&
+  !bookings.some((b) => from < toMinutes(b.end) && toMinutes(b.start) < from + MIN_DURATION_MIN);
+
 export const firstFreeStart = (date: string, now: ZonedNow, bookings: readonly Booking[]) => {
   if (!isWorkday(date)) return null;
-  const free = START_TIMES.find((start) => {
-    const from = toMinutes(start);
-    return (
-      !isPastStart(from, date, now) &&
-      !bookings.some((b) => from < toMinutes(b.end) && toMinutes(b.start) < from + MIN_DURATION_MIN)
-    );
-  });
-  return free ?? null;
+  return START_TIMES.find((start) => isStartFree(toMinutes(start), date, now, bookings)) ?? null;
 };
 
-export type ScheduleCell = { start: string; end: string; free: boolean; closed: boolean };
+export const isDayOver = (now: ZonedNow) =>
+  now.minutes > toMinutes(START_TIMES[START_TIMES.length - 1]);
+
+export type DayNotice = 'pastDay' | 'weekend' | 'dayOver' | 'fullyBooked';
+
+export const dayNotice = (
+  status: DayStatus,
+  now: ZonedNow,
+  hasFreeStart: boolean,
+): DayNotice | null => {
+  if (status === 'past') return 'pastDay';
+  if (status === 'weekend') return 'weekend';
+  if (status === 'today' && isDayOver(now)) return 'dayOver';
+  return hasFreeStart ? null : 'fullyBooked';
+};
+
+export type ScheduleCell = { start: string; freeStart: string | null; closed: boolean };
 
 export const scheduleCells = (
   date: string,
@@ -70,10 +83,17 @@ export const scheduleCells = (
   bookings: readonly Booking[],
 ): ScheduleCell[] =>
   range(DAY_START, DAY_END - CELL_MIN, CELL_MIN).map((from) => {
-    const to = from + CELL_MIN;
-    const closed = !isWorkday(date) || isPastStart(from, date, now);
-    const busy = bookings.some((b) => from < toMinutes(b.end) && toMinutes(b.start) < to);
-    return { start: toTime(from), end: toTime(to), free: !closed && !busy, closed };
+    const candidates = range(from, from + CELL_MIN - SLOT_STEP_MIN, SLOT_STEP_MIN);
+    const free = isWorkday(date)
+      ? candidates.find(
+          (start) => start <= DAY_END - MIN_DURATION_MIN && isStartFree(start, date, now, bookings),
+        )
+      : undefined;
+    return {
+      start: toTime(from),
+      freeStart: free === undefined ? null : toTime(free),
+      closed: !isWorkday(date) || isPastStart(from + CELL_MIN - SLOT_STEP_MIN, date, now),
+    };
   });
 
 export const blockPosition = (start: string, end: string) => ({

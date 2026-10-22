@@ -1,2 +1,2 @@
-export { apiErrorMessage, hasStatus } from './apiErrorMessage';
+export { apiErrorMessage, isConflict, isNotFound } from './apiErrorMessage';
 export { shouldRetryQuery } from './shouldRetryQuery';

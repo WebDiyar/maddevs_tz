@@ -16,6 +16,7 @@ export {
   isWorkday,
 } from './lib/bookingRules';
 export type { BookingSlot, RuleViolation, RuleViolationCode } from './lib/bookingRules';
+export { ruleMessage } from './lib/ruleMessage';
 export { bookingQueryKeys } from './model/bookingQueryKeys';
 export {
   useBookingsQuery,

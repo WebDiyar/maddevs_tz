@@ -2,7 +2,7 @@
 
 import { useBookingsQuery } from '@/entities/booking';
 import { useZonedNow } from '@/shared/model';
-import { dayStatus, firstFreeStart } from '../lib/schedule';
+import { dayNotice, dayStatus, firstFreeStart } from '../lib/schedule';
 import { useBookingPageStore } from './bookingPageStore';
 
 export const useBookingDay = () => {
@@ -14,5 +14,8 @@ export const useBookingDay = () => {
   const status = date && now ? dayStatus(date, now) : null;
   const freeStart = date && now && query.isSuccess ? firstFreeStart(date, now, bookings) : null;
 
-  return { now, date, query, bookings, status, freeStart };
+  const notice =
+    status && now ? dayNotice(status, now, !query.isSuccess || freeStart !== null) : null;
+
+  return { now, date, query, bookings, freeStart, notice };
 };

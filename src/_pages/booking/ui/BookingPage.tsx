@@ -18,13 +18,14 @@ import { DeleteBookingDialog } from './components/DeleteBookingDialog';
 export const BookingPage = () => {
   const t = useTranslations('booking.page');
   const locale = useLocale();
-  const { now, date, query, bookings, status, freeStart } = useBookingDay();
+  const { now, date, query, bookings, freeStart, notice } = useBookingDay();
   const selectDate = useBookingPageStore((state) => state.selectDate);
   const openCreate = useBookingPageStore((state) => state.openCreate);
   const openEdit = useBookingPageStore((state) => state.openEdit);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
+      <title>{t('metaTitle')}</title>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <p className="text-sm text-muted-foreground">{t('description')}</p>
@@ -42,22 +43,10 @@ export const BookingPage = () => {
             </Button>
           </div>
 
-          {status === 'past' && (
+          {notice && (
             <Alert>
               <InfoIcon />
-              <AlertDescription>{t('pastDay')}</AlertDescription>
-            </Alert>
-          )}
-          {status === 'weekend' && (
-            <Alert>
-              <InfoIcon />
-              <AlertDescription>{t('weekend')}</AlertDescription>
-            </Alert>
-          )}
-          {status === 'today' && query.isSuccess && !freeStart && (
-            <Alert>
-              <InfoIcon />
-              <AlertDescription>{t('dayOver')}</AlertDescription>
+              <AlertDescription>{t(notice)}</AlertDescription>
             </Alert>
           )}
 

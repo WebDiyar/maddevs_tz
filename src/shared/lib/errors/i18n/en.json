@@ -1,0 +1,10 @@
+{
+  "status400": "Invalid request",
+  "status404": "Not found — it may have been deleted already",
+  "status409": "Conflicts with another booking",
+  "status422": "Validation failed",
+  "badShape": "The server returned data in an unexpected format",
+  "offline": "No connection to the server — check your network and retry",
+  "server": "Server error ({status}) — please try again later",
+  "unknown": "Unknown error"
+}

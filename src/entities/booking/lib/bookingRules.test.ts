@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { findRuleViolation } from './bookingRules';
+import { ruleMessage } from './ruleMessage';
 
 const now = { date: '2026-10-22', minutes: 12 * 60 };
 const bookings = [{ id: 'a', date: '2026-10-23', start: '10:00', end: '11:00', title: 'Планёрка' }];
@@ -14,8 +15,8 @@ describe('findRuleViolation', () => {
   });
 
   it('keeps the slot inside the workday', () => {
-    expect(check('08:30', '09:30')).toBe('OUTSIDE_WORKDAY');
-    expect(check('17:30', '18:30')).toBe('OUTSIDE_WORKDAY');
+    expect(check('08:30', '09:30')).toBe('START_OUTSIDE_WORKDAY');
+    expect(check('17:30', '18:30')).toBe('END_OUTSIDE_WORKDAY');
   });
 
   it('enforces order and duration limits', () => {
@@ -41,10 +42,20 @@ describe('findRuleViolation', () => {
     expect(check('13:00', '14:00', '2026-10-26')).toBeNull();
   });
 
-  it('localizes messages', () => {
-    const slot = { date: '2026-10-24', start: '13:00', end: '14:00' };
-    expect(findRuleViolation(slot, { bookings, now })?.message).toMatch(/будням/);
-    expect(findRuleViolation(slot, { bookings, now, locale: 'en' })?.message).toMatch(/weekdays/);
+  it('formats violations in both languages', () => {
+    const weekend = findRuleViolation(
+      { date: '2026-10-24', start: '13:00', end: '14:00' },
+      { bookings, now },
+    );
+    expect(weekend && ruleMessage(weekend, 'ru')).toMatch(/будням/);
+    expect(weekend && ruleMessage(weekend, 'en')).toMatch(/weekdays/);
+    const conflict = findRuleViolation(
+      { date: '2026-10-23', start: '10:30', end: '11:30' },
+      { bookings, now },
+    );
+    expect(conflict && ruleMessage(conflict, 'ru')).toBe(
+      'Пересекается с бронью 10:00–11:00 «Планёрка»',
+    );
   });
 
   it('forbids past dates and past time today', () => {

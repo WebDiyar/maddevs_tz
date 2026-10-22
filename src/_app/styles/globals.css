@@ -156,6 +156,9 @@
   html {
     @apply font-sans;
   }
+  html[data-locale-pending] body {
+    visibility: hidden;
+  }
 }
 
 /* ==================== УТИЛИТЫ ==================== */

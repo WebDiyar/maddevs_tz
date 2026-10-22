@@ -4,6 +4,7 @@ import { API_BASE_URL, DEFAULT_LOCALE, HTTP_TIMEOUT_MS, TIME_ZONE_HEADER } from 
 export const http = axios.create({ baseURL: API_BASE_URL, timeout: HTTP_TIMEOUT_MS });
 
 http.interceptors.request.use((config) => {
+  if (typeof document === 'undefined') return config;
   config.headers.set(TIME_ZONE_HEADER, Intl.DateTimeFormat().resolvedOptions().timeZone);
   config.headers.set('Accept-Language', document.documentElement.lang || DEFAULT_LOCALE);
   return config;

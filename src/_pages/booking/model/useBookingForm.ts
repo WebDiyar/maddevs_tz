@@ -12,7 +12,7 @@ import {
   useCreateBookingMutation,
   useUpdateBookingMutation,
 } from '@/entities/booking';
-import { apiErrorMessage, hasStatus } from '@/shared/lib/errors';
+import { apiErrorMessage, isConflict, isNotFound } from '@/shared/lib/errors';
 import type { ZonedNow } from '@/shared/lib/time';
 import { defaultEnd, isEndDisabled } from '../lib/schedule';
 import { bookingFormSchema } from './bookingForm.schema';
@@ -26,8 +26,6 @@ type Params = {
   onClose: () => void;
 };
 
-const STATUS_CONFLICT = 409;
-const STATUS_NOT_FOUND = 404;
 const NO_BOOKINGS: never[] = [];
 
 const initialValues = (editor: BookingEditor): BookingFormValues => {
@@ -96,12 +94,12 @@ export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
       }
       onSaved(values.date);
     } catch (error) {
-      if (hasStatus(error, STATUS_NOT_FOUND)) {
+      if (isNotFound(error)) {
         toast.error(t('gone'), { description: apiErrorMessage(error, locale) });
         onClose();
         return;
       }
-      const hint = hasStatus(error, STATUS_CONFLICT) ? ` ${t('conflictHint')}` : '';
+      const hint = isConflict(error) ? ` ${t('conflictHint')}` : '';
       form.setError('root.server', { message: `${apiErrorMessage(error, locale)}.${hint}` });
     }
   });

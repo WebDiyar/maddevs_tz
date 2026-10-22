@@ -37,11 +37,11 @@ export const DaySchedule = ({ date, now, bookings, onCreate, onEdit }: Props) =>
         <ul aria-label={t('free')} className="flex h-full flex-col">
           {scheduleCells(date, now, bookings).map((cell) => (
             <li key={cell.start} className="flex-1 border-b border-dashed last:border-b-0">
-              {cell.free ? (
+              {cell.freeStart ? (
                 <button
                   type="button"
-                  aria-label={t('bookFrom', { time: cell.start })}
-                  onClick={() => onCreate(cell.start)}
+                  aria-label={t('bookFrom', { time: cell.freeStart })}
+                  onClick={() => cell.freeStart && onCreate(cell.freeStart)}
                   className="group flex size-full items-center justify-end px-3 text-muted-foreground outline-none hover:bg-accent focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                 >
                   <PlusIcon className="size-4 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100" />

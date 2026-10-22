@@ -1,0 +1,10 @@
+{
+  "invalidBody": "Invalid data{hasField, select, yes { in field {field}} other {}}: {reason}",
+  "badDate": "Query parameter date is required in YYYY-MM-DD format",
+  "badTimeZone": "Unknown time zone in header {header}",
+  "notFound": "Booking not found — it may have been deleted already",
+  "startedEdit": "A booking that has started or ended cannot be changed",
+  "startedDelete": "A booking that has started or ended cannot be deleted",
+  "raceLost": "While you were booking, {time} was taken by another user",
+  "rivalTitle": "Taken by a colleague"
+}

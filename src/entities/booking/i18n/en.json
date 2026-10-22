@@ -1,0 +1,11 @@
+{
+  "PAST_DATE": "Past dates cannot be booked",
+  "WEEKEND": "The room is available on weekdays only (Mon–Fri)",
+  "START_OUTSIDE_WORKDAY": "Start must be within working hours {from}–{to}",
+  "END_OUTSIDE_WORKDAY": "End must be no later than {to}",
+  "START_NOT_BEFORE_END": "End must be after start",
+  "TOO_SHORT": "Minimum duration is {minutes} minutes",
+  "TOO_LONG": "Maximum duration is {hours} hours",
+  "PAST_TIME": "Start time has already passed — it is {now} now",
+  "CONFLICT": "Overlaps with booking {time}{hasTitle, select, yes { “{title}”} other {}}"
+}

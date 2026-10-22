@@ -3,10 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useDeleteBookingMutation } from '@/entities/booking';
-import { apiErrorMessage, hasStatus } from '@/shared/lib/errors';
+import { apiErrorMessage, isNotFound } from '@/shared/lib/errors';
 import { useBookingPageStore } from './bookingPageStore';
-
-const STATUS_NOT_FOUND = 404;
 
 export const useDeleteBooking = () => {
   const t = useTranslations('booking.remove');
@@ -22,7 +20,7 @@ export const useDeleteBooking = () => {
       await mutation.mutateAsync(deleting.id);
       toast.success(t('done'));
     } catch (error) {
-      if (!hasStatus(error, STATUS_NOT_FOUND)) {
+      if (!isNotFound(error)) {
         toast.error(apiErrorMessage(error, locale));
         return;
       }
