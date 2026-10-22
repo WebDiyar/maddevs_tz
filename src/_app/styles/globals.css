@@ -1,0 +1,167 @@
+/* ==================== ИМПОРТЫ ==================== */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==================== ТЕМА → КЛАССЫ TAILWIND ==================== */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-strong: var(--success-strong);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-strong: var(--warning-strong);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-strong: var(--danger-strong);
+  --color-danger-border: var(--danger-border);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-strong: var(--info-strong);
+  --color-info-border: var(--info-border);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ==================== СВЕТЛАЯ ТЕМА ==================== */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.17 0.015 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.17 0.015 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.17 0.015 265);
+  --primary: oklch(0.21 0.02 265);
+  --primary-foreground: oklch(0.985 0.002 265);
+  --secondary: oklch(0.96 0.005 265);
+  --secondary-foreground: oklch(0.21 0.02 265);
+  --muted: oklch(0.965 0.005 265);
+  --muted-foreground: oklch(0.45 0.02 265);
+  --accent: oklch(0.955 0.007 265);
+  --accent-foreground: oklch(0.17 0.015 265);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.63 0.17 152);
+  --success-soft: oklch(0.965 0.04 155);
+  --success-strong: oklch(0.42 0.12 152);
+  --success-border: oklch(0.87 0.08 155);
+  --warning: oklch(0.76 0.17 65);
+  --warning-soft: oklch(0.975 0.045 85);
+  --warning-strong: oklch(0.47 0.12 55);
+  --warning-border: oklch(0.88 0.1 80);
+  --danger: oklch(0.6 0.22 27);
+  --danger-soft: oklch(0.965 0.025 20);
+  --danger-strong: oklch(0.5 0.19 27);
+  --danger-border: oklch(0.88 0.07 20);
+  --info: oklch(0.58 0.18 258);
+  --info-soft: oklch(0.965 0.025 250);
+  --info-strong: oklch(0.46 0.17 262);
+  --info-border: oklch(0.87 0.06 250);
+  --border: oklch(0.91 0.006 265);
+  --input: oklch(0.86 0.01 265);
+  --ring: oklch(0.58 0.18 258);
+  --radius: 0.625rem;
+}
+
+/* ==================== ТЁМНАЯ ТЕМА ==================== */
+.dark {
+  --background: oklch(0.185 0.012 265);
+  --foreground: oklch(0.96 0.004 265);
+  --card: oklch(0.215 0.013 265);
+  --card-foreground: oklch(0.96 0.004 265);
+  --popover: oklch(0.235 0.014 265);
+  --popover-foreground: oklch(0.96 0.004 265);
+  --primary: oklch(0.95 0.004 265);
+  --primary-foreground: oklch(0.2 0.012 265);
+  --secondary: oklch(0.27 0.014 265);
+  --secondary-foreground: oklch(0.96 0.004 265);
+  --muted: oklch(0.26 0.013 265);
+  --muted-foreground: oklch(0.75 0.015 265);
+  --accent: oklch(0.28 0.014 265);
+  --accent-foreground: oklch(0.97 0.004 265);
+  --destructive: oklch(0.63 0.2 24);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.73 0.17 152);
+  --success-soft: oklch(0.29 0.05 155);
+  --success-strong: oklch(0.85 0.13 152);
+  --success-border: oklch(0.42 0.08 155);
+  --warning: oklch(0.8 0.15 75);
+  --warning-soft: oklch(0.3 0.05 70);
+  --warning-strong: oklch(0.88 0.12 82);
+  --warning-border: oklch(0.45 0.08 70);
+  --danger: oklch(0.7 0.19 22);
+  --danger-soft: oklch(0.29 0.06 20);
+  --danger-strong: oklch(0.84 0.11 20);
+  --danger-border: oklch(0.45 0.1 22);
+  --info: oklch(0.72 0.14 250);
+  --info-soft: oklch(0.29 0.05 255);
+  --info-strong: oklch(0.85 0.09 250);
+  --info-border: oklch(0.44 0.08 255);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 17%);
+  --ring: oklch(0.72 0.14 250);
+}
+
+/* ==================== БАЗА ==================== */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-weight: 450;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  .dark body {
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ==================== УТИЛИТЫ ==================== */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

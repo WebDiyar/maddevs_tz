@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Бронирование переговорной
 
-## Getting Started
+Интерфейс бронирования переговорной комнаты на рабочий день (09:00–18:00): выбор даты, таймлайн броней,
+создание, редактирование и удаление с валидацией бизнес-правил на клиенте и на сервере (mock API).
 
-First, run the development server:
+**Demo:** _TODO_ · **Время:** _TODO_
+
+## Запуск
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env   # необязательно
+npm run dev            # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Команда | Что делает |
+|---|---|
+| `npm test` | тесты бизнес-правил (vitest) |
+| `npm run lint:all` | ESLint, tsc, steiger + fsd-check (архитектура FSD), проверка Tailwind-классов |
+| `npm run build` | production-сборка |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Переменные (`.env.example`): `NEXT_PUBLIC_API_BASE_URL` — адрес API (по умолчанию встроенный mock `/api`),
+`MOCK_LATENCY_MS` — задержка ответов mock, `MOCK_CONFLICT_RATE` — доля POST, на которые mock отвечает `409`
+(имитация «слот занял другой пользователь»). `MOCK_CONFLICT_RATE=1` — конфликт на каждое создание.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Стек и структура
 
-## Learn More
+Next.js 16 (App Router, Route Handlers как mock API) · TypeScript · Tailwind 4 · shadcn/ui · TanStack Query ·
+axios · zod · react-hook-form · zustand. Архитектура — Feature-Sliced Design:
 
-To learn more about Next.js, take a look at the following resources:
+- `src/entities/booking` — схемы, запросы, query-хуки и **бизнес-правила** (одна функция для формы и сервера);
+- `src/_pages/booking` — экран: таймлайн дня, форма, диалоги;
+- `src/_app/api-routes` — mock-бэкенд (in-memory), `app/api/*` — только ре-экспорты;
+- `src/shared` — http-клиент, обработка ошибок, работа со временем, UI-кит.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Сетевой слой отделён: UI → хуки → `entities/booking/api` → axios. Переход на реальный API —
+смена `NEXT_PUBLIC_API_BASE_URL`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Что сделано
 
-## Deploy on Vercel
+- Все пункты ТЗ: выбор даты, просмотр, создание/редактирование/удаление, правила 1–8.
+- Состояния: скелетон загрузки, пустой день, ошибка с «Повторить», отправка формы.
+- Конфликт `409`: сообщение в форме, список броней перезапрашивается, введённые данные сохраняются.
+- Адаптив от 360px, клавиатурная навигация, aria-подписи.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Допущения
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Часовой пояс переговорной — Asia/Bishkek; «сегодня» и «сейчас» считаются в нём.
+- Прошедший слот — тот, чьё **начало** уже прошло. Начавшиеся брони нельзя менять и удалять.
+- Шаг выбора времени — 15 минут.
+
+## Что не сделано / что дальше
+
+- Хранилище in-memory: сбрасывается при рестарте и не общее между serverless-инстансами на Vercel.
+- Нет e2e-тестов (Playwright) — следующий приоритет после юнит-тестов правил.
+- Нет оптимистичных обновлений — список перечитывается после каждой мутации.

@@ -1,0 +1,29 @@
+'use client';
+
+import { useMemo, useSyncExternalStore } from 'react';
+import { zonedNow } from '@/shared/lib/time';
+import type { ZonedNow } from '@/shared/lib/time';
+
+const TICK_MS = 30_000;
+
+const subscribe = (onChange: () => void) => {
+  const timer = window.setInterval(onChange, TICK_MS);
+  return () => window.clearInterval(timer);
+};
+
+const parse = (snapshot: string): ZonedNow => {
+  const [date, minutes] = snapshot.split('|');
+  return { date, minutes: Number(minutes) };
+};
+
+export const useZonedNow = (timeZone: string): ZonedNow | null => {
+  const snapshot = useSyncExternalStore(
+    subscribe,
+    () => {
+      const now = zonedNow(timeZone);
+      return `${now.date}|${now.minutes}`;
+    },
+    () => null,
+  );
+  return useMemo(() => (snapshot === null ? null : parse(snapshot)), [snapshot]);
+};

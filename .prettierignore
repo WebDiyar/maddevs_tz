@@ -1,0 +1,16 @@
+.next
+node_modules
+next-env.d.ts
+package-lock.json
+docs
+backend
+scripts/fsd-check.mjs
+scripts/fsd/
+scripts/README.md
+public
+*.md
+release
+test/fixtures
+playwright-report
+test-results
+e2e/.auth
