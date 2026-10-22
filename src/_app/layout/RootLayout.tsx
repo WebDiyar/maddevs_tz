@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import '@/_app/styles/globals.css';
 import { AppProviders } from './AppProviders';
 import { fontMono, fontSans } from './fonts';
+import { SiteHeader } from './SiteHeader';
 
 type Props = {
   children: ReactNode;
@@ -14,7 +15,10 @@ export const RootLayout = ({ children }: Props) => (
     className={`${fontSans.variable} ${fontMono.variable} h-full`}
   >
     <body className="min-h-full">
-      <AppProviders>{children}</AppProviders>
+      <AppProviders>
+        <SiteHeader />
+        {children}
+      </AppProviders>
     </body>
   </html>
 );

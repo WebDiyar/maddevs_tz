@@ -1,12 +1,12 @@
 'use client';
 
 import { InfoIcon, PlusIcon } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { apiErrorMessage } from '@/shared/lib/errors';
 import { Alert, AlertDescription } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
 import { QueryZone } from '@/shared/ui/QueryZone';
 import { Spinner } from '@/shared/ui/spinner';
-import { PAGE_TEXT } from '../model/bookingPage.data';
 import { useBookingPageStore } from '../model/bookingPageStore';
 import { useBookingDay } from '../model/useBookingDay';
 import { BookingFormDialog } from './components/BookingFormDialog';
@@ -16,7 +16,9 @@ import { DayScheduleSkeleton } from './components/DayScheduleSkeleton';
 import { DeleteBookingDialog } from './components/DeleteBookingDialog';
 
 export const BookingPage = () => {
-  const { now, date, query, bookings, status, canCreate } = useBookingDay();
+  const t = useTranslations('booking.page');
+  const locale = useLocale();
+  const { now, date, query, bookings, status, freeStart } = useBookingDay();
   const selectDate = useBookingPageStore((state) => state.selectDate);
   const openCreate = useBookingPageStore((state) => state.openCreate);
   const openEdit = useBookingPageStore((state) => state.openEdit);
@@ -24,8 +26,8 @@ export const BookingPage = () => {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">{PAGE_TEXT.title}</h1>
-        <p className="text-sm text-muted-foreground">{PAGE_TEXT.description}</p>
+        <h1 className="text-2xl font-semibold">{t('title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('description')}</p>
       </header>
 
       {!now || !date ? (
@@ -34,29 +36,35 @@ export const BookingPage = () => {
         <>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <DateNav date={date} today={now.date} onChange={selectDate} />
-            <Button disabled={!canCreate} onClick={() => openCreate()}>
+            <Button disabled={!freeStart} onClick={() => freeStart && openCreate(date, freeStart)}>
               <PlusIcon />
-              {PAGE_TEXT.create}
+              {t('create')}
             </Button>
           </div>
 
           {status === 'past' && (
             <Alert>
               <InfoIcon />
-              <AlertDescription>{PAGE_TEXT.pastDay}</AlertDescription>
+              <AlertDescription>{t('pastDay')}</AlertDescription>
             </Alert>
           )}
-          {status === 'today' && query.isSuccess && !canCreate && (
+          {status === 'weekend' && (
             <Alert>
               <InfoIcon />
-              <AlertDescription>{PAGE_TEXT.dayOver}</AlertDescription>
+              <AlertDescription>{t('weekend')}</AlertDescription>
+            </Alert>
+          )}
+          {status === 'today' && query.isSuccess && !freeStart && (
+            <Alert>
+              <InfoIcon />
+              <AlertDescription>{t('dayOver')}</AlertDescription>
             </Alert>
           )}
 
           <section aria-labelledby="schedule-title" className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h2 id="schedule-title" className="text-lg font-medium">
-                Расписание
+                {t('schedule')}
               </h2>
               {query.isFetching && !query.isPending && (
                 <span
@@ -64,13 +72,15 @@ export const BookingPage = () => {
                   className="flex items-center gap-2 text-xs text-muted-foreground"
                 >
                   <Spinner />
-                  {PAGE_TEXT.refreshing}
+                  {t('refreshing')}
                 </span>
               )}
             </div>
             <QueryZone
               status={query.status}
-              error={query.error ? apiErrorMessage(query.error) : undefined}
+              error={query.error ? apiErrorMessage(query.error, locale) : undefined}
+              errorTitle={t('loadError')}
+              retryLabel={t('retry')}
               onRetry={() => void query.refetch()}
               skeleton={<DayScheduleSkeleton />}
             >
@@ -79,21 +89,21 @@ export const BookingPage = () => {
                   role="status"
                   className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground"
                 >
-                  <span className="font-medium text-foreground">{PAGE_TEXT.emptyTitle}.</span>{' '}
-                  {status === 'past' ? null : PAGE_TEXT.emptyDescription}
+                  <span className="font-medium text-foreground">{t('emptyTitle')}.</span>{' '}
+                  {freeStart ? t('emptyDescription') : null}
                 </p>
               )}
               <DaySchedule
                 date={date}
                 now={now}
                 bookings={bookings}
-                onCreate={openCreate}
+                onCreate={(start) => openCreate(date, start)}
                 onEdit={openEdit}
               />
             </QueryZone>
           </section>
 
-          <BookingFormDialog date={date} now={now} bookings={bookings} />
+          <BookingFormDialog now={now} />
           <DeleteBookingDialog />
         </>
       )}

@@ -35,6 +35,18 @@ describe('findRuleViolation', () => {
     expect(check('10:15', '10:45', '2026-10-23', 'a')).toBeNull();
   });
 
+  it('allows weekdays only', () => {
+    expect(check('13:00', '14:00', '2026-10-24')).toBe('WEEKEND');
+    expect(check('13:00', '14:00', '2026-10-25')).toBe('WEEKEND');
+    expect(check('13:00', '14:00', '2026-10-26')).toBeNull();
+  });
+
+  it('localizes messages', () => {
+    const slot = { date: '2026-10-24', start: '13:00', end: '14:00' };
+    expect(findRuleViolation(slot, { bookings, now })?.message).toMatch(/будням/);
+    expect(findRuleViolation(slot, { bookings, now, locale: 'en' })?.message).toMatch(/weekdays/);
+  });
+
   it('forbids past dates and past time today', () => {
     expect(check('13:00', '14:00', '2026-10-21')).toBe('PAST_DATE');
     expect(check('11:30', '12:30', '2026-10-22')).toBe('PAST_TIME');

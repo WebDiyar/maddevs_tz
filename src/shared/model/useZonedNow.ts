@@ -16,11 +16,11 @@ const parse = (snapshot: string): ZonedNow => {
   return { date, minutes: Number(minutes) };
 };
 
-export const useZonedNow = (timeZone: string): ZonedNow | null => {
+export const useZonedNow = (): ZonedNow | null => {
   const snapshot = useSyncExternalStore(
     subscribe,
     () => {
-      const now = zonedNow(timeZone);
+      const now = zonedNow();
       return `${now.date}|${now.minutes}`;
     },
     () => null,

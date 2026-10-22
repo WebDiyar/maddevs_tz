@@ -1,3 +1,7 @@
+import { TIME_ZONE_HEADER } from '@/shared/config';
+import type { Locale } from '@/shared/config';
+import { isValidTimeZone } from '@/shared/lib/time';
+
 export type ApiErrorCode = 'BAD_REQUEST' | 'NOT_FOUND' | 'CONFLICT' | 'RULE_VIOLATION';
 
 const STATUS: Record<ApiErrorCode, number> = {
@@ -21,3 +25,13 @@ export const readJson = async (request: Request): Promise<unknown> => {
     return undefined;
   }
 };
+
+const FALLBACK_TIME_ZONE = 'UTC';
+
+export const requestTimeZone = (request: Request) => {
+  const timeZone = request.headers.get(TIME_ZONE_HEADER) ?? FALLBACK_TIME_ZONE;
+  return isValidTimeZone(timeZone) ? timeZone : null;
+};
+
+export const requestLocale = (request: Request): Locale =>
+  request.headers.get('accept-language')?.toLowerCase().startsWith('en') ? 'en' : 'ru';

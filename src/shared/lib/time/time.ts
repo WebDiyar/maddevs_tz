@@ -19,12 +19,23 @@ export const shiftDate = (date: string, days: number) => {
   return shifted.toISOString().slice(0, 10);
 };
 
+export const weekday = (date: string) => new Date(`${date}T00:00:00Z`).getUTCDay();
+
+export const isValidTimeZone = (timeZone: string) => {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export type ZonedNow = { date: string; minutes: number };
 
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
-const formatterFor = (timeZone: string) => {
-  let formatter = formatters.get(timeZone);
+const formatterFor = (timeZone?: string) => {
+  let formatter = formatters.get(timeZone ?? '');
   if (!formatter) {
     formatter = new Intl.DateTimeFormat('en-CA', {
       timeZone,
@@ -35,12 +46,12 @@ const formatterFor = (timeZone: string) => {
       minute: '2-digit',
       hourCycle: 'h23',
     });
-    formatters.set(timeZone, formatter);
+    formatters.set(timeZone ?? '', formatter);
   }
   return formatter;
 };
 
-export const zonedNow = (timeZone: string, at: Date = new Date()): ZonedNow => {
+export const zonedNow = (timeZone?: string, at: Date = new Date()): ZonedNow => {
   const parts = Object.fromEntries(
     formatterFor(timeZone)
       .formatToParts(at)

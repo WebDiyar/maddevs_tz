@@ -1,14 +1,16 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useDeleteBookingMutation } from '@/entities/booking';
 import { apiErrorMessage, hasStatus } from '@/shared/lib/errors';
-import { DELETE_TEXT } from './bookingPage.data';
 import { useBookingPageStore } from './bookingPageStore';
 
 const STATUS_NOT_FOUND = 404;
 
 export const useDeleteBooking = () => {
+  const t = useTranslations('booking.remove');
+  const locale = useLocale();
   const deleting = useBookingPageStore((state) => state.deleting);
   const closeDelete = useBookingPageStore((state) => state.closeDelete);
   const closeEditor = useBookingPageStore((state) => state.closeEditor);
@@ -18,13 +20,13 @@ export const useDeleteBooking = () => {
     if (!deleting) return;
     try {
       await mutation.mutateAsync(deleting.id);
-      toast.success(DELETE_TEXT.done);
+      toast.success(t('done'));
     } catch (error) {
       if (!hasStatus(error, STATUS_NOT_FOUND)) {
-        toast.error(apiErrorMessage(error));
+        toast.error(apiErrorMessage(error, locale));
         return;
       }
-      toast.info(DELETE_TEXT.alreadyGone);
+      toast.info(t('alreadyGone'));
     }
     closeDelete();
     closeEditor();

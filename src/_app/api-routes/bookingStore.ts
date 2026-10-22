@@ -1,12 +1,15 @@
-import { ROOM_TIME_ZONE } from '@/entities/booking';
+import { isWorkday } from '@/entities/booking';
 import type { Booking } from '@/entities/booking';
 import { shiftDate, zonedNow } from '@/shared/lib/time';
 
 type Store = { bookings: Map<string, Booking> };
 
+const nextWorkday = (date: string): string =>
+  isWorkday(date) ? date : nextWorkday(shiftDate(date, 1));
+
 const seed = (): Store => {
-  const today = zonedNow(ROOM_TIME_ZONE).date;
-  const tomorrow = shiftDate(today, 1);
+  const today = nextWorkday(zonedNow().date);
+  const tomorrow = nextWorkday(shiftDate(today, 1));
   const bookings: Booking[] = [
     { id: crypto.randomUUID(), date: today, start: '10:00', end: '11:00', title: 'Планёрка' },
     {

@@ -1,13 +1,10 @@
 'use client';
 
-import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import { ru } from 'date-fns/locale';
-import { useState } from 'react';
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { shiftDate } from '@/shared/lib/time';
 import { Button } from '@/shared/ui/button';
-import { Calendar } from '@/shared/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { formatLongDate, formatShortDate, fromDate, toDate } from '../../lib/formatDate';
+import { DatePicker } from './DatePicker';
 
 type Props = {
   date: string;
@@ -16,54 +13,28 @@ type Props = {
 };
 
 export const DateNav = ({ date, today, onChange }: Props) => {
-  const [isOpen, setIsOpen] = useState(false);
-
+  const t = useTranslations('booking.nav');
   return (
-    <nav aria-label="Выбор даты" className="flex flex-wrap items-center gap-2">
+    <nav aria-label={t('label')} className="flex flex-wrap items-center gap-2">
       <Button
         variant="outline"
         size="icon"
-        aria-label="Предыдущий день"
+        aria-label={t('prev')}
         onClick={() => onChange(shiftDate(date, -1))}
       >
         <ChevronLeftIcon />
       </Button>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="min-w-0 flex-1 justify-start sm:w-72 sm:flex-none">
-            <CalendarIcon />
-            <span className="truncate first-letter:uppercase sm:hidden">
-              {formatShortDate(date)}
-            </span>
-            <span className="hidden truncate first-letter:uppercase sm:inline">
-              {formatLongDate(date)}
-            </span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            locale={ru}
-            selected={toDate(date)}
-            defaultMonth={toDate(date)}
-            required
-            onSelect={(day) => {
-              onChange(fromDate(day));
-              setIsOpen(false);
-            }}
-          />
-        </PopoverContent>
-      </Popover>
+      <DatePicker value={date} onChange={onChange} className="flex-1 sm:w-72 sm:flex-none" />
       <Button
         variant="outline"
         size="icon"
-        aria-label="Следующий день"
+        aria-label={t('next')}
         onClick={() => onChange(shiftDate(date, 1))}
       >
         <ChevronRightIcon />
       </Button>
       <Button variant="ghost" disabled={date === today} onClick={() => onChange(today)}>
-        Сегодня
+        {t('today')}
       </Button>
     </nav>
   );

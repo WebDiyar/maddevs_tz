@@ -15,6 +15,8 @@ type Props = {
   isEmpty?: boolean;
   error?: string;
   onRetry?: () => void;
+  errorTitle?: string;
+  retryLabel?: string;
   skeleton: ReactNode;
   emptyTitle?: string;
   emptyDescription?: ReactNode;
@@ -27,6 +29,8 @@ export const QueryZone = ({
   isEmpty = false,
   error,
   onRetry,
+  errorTitle = 'Не удалось загрузить данные',
+  retryLabel = 'Повторить',
   skeleton,
   emptyTitle = 'Здесь пока пусто',
   emptyDescription,
@@ -42,14 +46,14 @@ export const QueryZone = ({
           <EmptyMedia variant="icon">
             <AlertCircleIcon className="text-destructive" />
           </EmptyMedia>
-          <EmptyTitle>Не удалось загрузить данные</EmptyTitle>
+          <EmptyTitle>{errorTitle}</EmptyTitle>
           {error && <EmptyDescription>{error}</EmptyDescription>}
         </EmptyHeader>
         {onRetry && (
           <EmptyContent>
             <Button variant="outline" onClick={onRetry}>
               <RotateCwIcon data-icon="inline-start" />
-              Повторить
+              {retryLabel}
             </Button>
           </EmptyContent>
         )}

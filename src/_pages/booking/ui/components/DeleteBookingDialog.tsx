@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,24 +12,24 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { Spinner } from '@/shared/ui/spinner';
-import { DELETE_TEXT } from '../../model/bookingPage.data';
 import { useDeleteBooking } from '../../model/useDeleteBooking';
 
 export const DeleteBookingDialog = () => {
+  const t = useTranslations('booking.remove');
   const { deleting, isPending, confirm, cancel } = useDeleteBooking();
 
   return (
     <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && !isPending && cancel()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{DELETE_TEXT.title}</AlertDialogTitle>
+          <AlertDialogTitle>{t('title')}</AlertDialogTitle>
           <AlertDialogDescription>
             {deleting &&
-              `${deleting.date} ${deleting.start}–${deleting.end}${deleting.title ? ` «${deleting.title}»` : ''}`}
+              `${deleting.date} ${deleting.start}–${deleting.end}${deleting.title ? ` · ${deleting.title}` : ''}`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>{DELETE_TEXT.cancel}</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={isPending}
@@ -38,7 +39,7 @@ export const DeleteBookingDialog = () => {
             }}
           >
             {isPending && <Spinner />}
-            {DELETE_TEXT.confirm}
+            {t('confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

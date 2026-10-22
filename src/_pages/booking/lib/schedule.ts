@@ -4,10 +4,12 @@ import {
   SLOT_STEP_MIN,
   WORKDAY_END,
   WORKDAY_START,
+  isWorkday,
 } from '@/entities/booking';
 import type { Booking } from '@/entities/booking';
 import { toMinutes, toTime } from '@/shared/lib/time';
 import type { ZonedNow } from '@/shared/lib/time';
+import type { Matcher } from 'react-day-picker';
 
 const DAY_START = toMinutes(WORKDAY_START);
 const DAY_END = toMinutes(WORKDAY_END);
@@ -22,10 +24,17 @@ export const START_TIMES = range(DAY_START, DAY_END - MIN_DURATION_MIN, SLOT_STE
 export const END_TIMES = range(DAY_START + MIN_DURATION_MIN, DAY_END, SLOT_STEP_MIN).map(toTime);
 export const HOUR_MARKS = range(DAY_START, DAY_END, 60).map(toTime);
 
-export type DayStatus = 'past' | 'today' | 'future';
+const WEEKEND_MATCHER: Matcher = { dayOfWeek: [0, 6] };
 
-export const dayStatus = (date: string, now: ZonedNow): DayStatus =>
-  date < now.date ? 'past' : date === now.date ? 'today' : 'future';
+export type DayStatus = 'past' | 'weekend' | 'today' | 'future';
+
+export const dayStatus = (date: string, now: ZonedNow): DayStatus => {
+  if (date < now.date) return 'past';
+  if (!isWorkday(date)) return 'weekend';
+  return date === now.date ? 'today' : 'future';
+};
+
+export const unavailableDays = (today: Date): Matcher[] => [{ before: today }, WEEKEND_MATCHER];
 
 const isPastStart = (start: number, date: string, now: ZonedNow) =>
   date < now.date || (date === now.date && start < now.minutes);
@@ -41,16 +50,19 @@ export const isEndDisabled = (end: string, start: string) => {
 export const defaultEnd = (start: string) =>
   toTime(Math.min(toMinutes(start) + DEFAULT_DURATION_MIN, DAY_END));
 
-export const firstFreeStart = (date: string, now: ZonedNow, bookings: readonly Booking[]) =>
-  START_TIMES.find((start) => {
+export const firstFreeStart = (date: string, now: ZonedNow, bookings: readonly Booking[]) => {
+  if (!isWorkday(date)) return null;
+  const free = START_TIMES.find((start) => {
     const from = toMinutes(start);
     return (
       !isPastStart(from, date, now) &&
       !bookings.some((b) => from < toMinutes(b.end) && toMinutes(b.start) < from + MIN_DURATION_MIN)
     );
-  }) ?? null;
+  });
+  return free ?? null;
+};
 
-export type ScheduleCell = { start: string; end: string; free: boolean; past: boolean };
+export type ScheduleCell = { start: string; end: string; free: boolean; closed: boolean };
 
 export const scheduleCells = (
   date: string,
@@ -59,9 +71,9 @@ export const scheduleCells = (
 ): ScheduleCell[] =>
   range(DAY_START, DAY_END - CELL_MIN, CELL_MIN).map((from) => {
     const to = from + CELL_MIN;
-    const past = isPastStart(from, date, now);
+    const closed = !isWorkday(date) || isPastStart(from, date, now);
     const busy = bookings.some((b) => from < toMinutes(b.end) && toMinutes(b.start) < to);
-    return { start: toTime(from), end: toTime(to), free: !past && !busy, past };
+    return { start: toTime(from), end: toTime(to), free: !closed && !busy, closed };
   });
 
 export const blockPosition = (start: string, end: string) => ({

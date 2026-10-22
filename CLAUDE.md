@@ -8,7 +8,7 @@
 
 **Стек:** Next.js 16.4 (App Router, Route Handlers) · React 19 · TypeScript strict · Tailwind CSS 4 (PostCSS) ·
 shadcn/ui (radix-nova) · TanStack Query 5 · axios · zod 4 · react-hook-form · zustand · date-fns ·
-sonner · lucide-react · vitest. Архитектура — FSD (`docs/local/FSD.md`, локально).
+sonner · lucide-react · next-intl (RU основной + EN) · vitest · Playwright. Архитектура — FSD (`docs/local/FSD.md`, локально).
 
 ## 0. Карта
 
@@ -16,16 +16,19 @@ sonner · lucide-react · vitest. Архитектура — FSD (`docs/local/FS
 app/                              роутер Next — ТОЛЬКО ре-экспорты
 ├── layout.tsx                    → @/_app/layout
 ├── page.tsx                      → @/_pages/booking
+├── about/page.tsx                → @/_pages/about (документация «Как это работает»)
 └── api/bookings/[id]/route.ts    → @/_app/api-routes (mock API)
 src/
 ├── _app/
-│   ├── layout/                   RootLayout, AppProviders (QueryClient, тема, Toaster), metadata
+│   ├── layout/                   RootLayout, SiteHeader (навигация + LocaleSwitch RU/EN, nav.config.ts),
+│   │                             AppProviders (NextIntlClientProvider, QueryClient, тема, Toaster), metadata
 │   ├── api-routes/               mock-бэкенд: обработчики, in-memory store, формат ошибок
 │   └── styles/globals.css        токены темы shadcn (:root / .dark)
-├── _pages/booking/               единственный экран
+├── _pages/about/                 документация для проверяющего: ТЗ, ответы рекрутера, решения (текст — в messages *.about)
+├── _pages/booking/               экран бронирования
 │   ├── ui/BookingPage.tsx        композер: шапка → DateNav → зона данных → диалоги
-│   ├── ui/components/*           DateNav, DaySchedule, BookingBlock, BookingForm(+Dialog), DeleteBookingDialog, TimeSelect
-│   ├── model/                    zustand-стор страницы, хуки формы/дня/удаления, zod-схема формы, тексты
+│   ├── ui/components/*           DateNav, DatePicker, DaySchedule, BookingBlock, BookingForm(+Dialog), DeleteBookingDialog, TimeSelect
+│   ├── model/                    zustand-стор страницы, хуки формы/дня/удаления, zod-схема формы
 │   └── lib/                      расчёт сетки слотов, доступных времён, форматирование дат
 ├── entities/booking/             домен «бронь»
 │   ├── api/bookingApi.ts         zod-схемы Booking/Input/Patch + функции запросов (единственное место с URL)
@@ -33,9 +36,10 @@ src/
 │   └── model/                    query keys, useBookingsQuery / useXxxBookingMutation
 └── shared/
     ├── api/                      http (axios, baseURL из env), makeQueryClient
-    ├── config/                   API_BASE_URL, таймауты, staleTime
+    ├── config/                   API_BASE_URL, TIME_ZONE_HEADER, таймауты, staleTime
     ├── lib/errors|time           apiErrorMessage/hasStatus/shouldRetryQuery; HH:mm ↔ минуты, zonedNow
-    ├── model/useZonedNow         «сейчас» в часовом поясе переговорной, тикает раз в 30 с
+    ├── i18n/                     messages/ru.json + en.json (next-intl), MESSAGES, типы AppConfig (next-intl.d.ts)
+    ├── model/                    useZonedNow («сейчас» в поясе браузера), useLocaleStore (язык, localStorage)
     └── ui/                       shadcn (kebab-файлы) + QueryZone
 ```
 
@@ -43,13 +47,14 @@ src/
 
 | # | Требование | Реализация | Проверка |
 |---|---|---|---|
-| F1 | Выбрать дату | `DateNav`: ← / → по дням, календарь (Popover + shadcn Calendar), «Сегодня» | клик по стрелкам и календарю |
+| F1 | Выбрать дату | `DateNav`: ← / → по дням, `DatePicker` (Popover + Calendar), «Сегодня» | клик по стрелкам и календарю |
 | F2 | Посмотреть брони на дату | `DaySchedule` — таймлайн дня 09:00–18:00, брони блоками, линия «сейчас» | `GET /api/bookings?date=` |
 | F3 | Выбрать начало и окончание | `BookingForm` → `TimeSelect` (шаг 15 мин); недоступные варианты `disabled` | открыть форму |
 | F4 | Создать бронь | кнопка «Новая бронь» (первое свободное время) или клик по свободной ячейке (её время) | `POST /api/bookings` |
-| F5 | Редактировать | клик по блоку брони → та же форма в режиме edit | `PATCH /api/bookings/:id` |
+| F5 | Редактировать | клик по блоку брони → та же форма; меняется всё: дата, время, название. После сохранения расписание переключается на дату брони | `PATCH /api/bookings/:id` |
 | F6 | Удалить | кнопка «Удалить» в форме → `AlertDialog` подтверждения | `DELETE /api/bookings/:id` |
 | F7 | Формат отображения — на выбор | таймлайн (календарь дня) | — |
+| F8 | Документация (сверх ТЗ, согласовано) | `/about` «Как это работает», ссылка в шапке | открыть страницу |
 
 ## 2. Бизнес-правила ТЗ
 
@@ -60,27 +65,43 @@ src/
 
 | # | Правило | Где | Код ошибки / статус |
 |---|---|---|---|
+| R0 | только будни пн–пт (ответ заказчика) | `isWorkday`; в календаре формы сб/вс недоступны, на выходном — баннер, ячейки закрыты | `WEEKEND` / 422 |
 | R1 | start и end в пределах 09:00–18:00 | `WORKDAY_START/END`; варианты в селектах ограничены диапазоном | `OUTSIDE_WORKDAY` / 422 |
 | R2 | start < end | `findRuleViolation` | `START_NOT_BEFORE_END` / 422 |
 | R3 | минимум 30 минут | `MIN_DURATION_MIN`; end-варианты короче — disabled | `TOO_SHORT` / 422 |
 | R4 | максимум 2 часа | `MAX_DURATION_MIN`; end-варианты длиннее — disabled | `TOO_LONG` / 422 |
 | R5 | брони не пересекаются, касание границ — не конфликт | `overlaps`: `a.start < b.end && b.start < a.end` (строгие неравенства) | `CONFLICT` / 409 |
-| R6a | сегодня — прошедшие слоты недоступны | `PAST_TIME`; ячейки и варианты начала до «сейчас» недоступны, серый фон | 422 |
-| R6b | прошедшая дата — создание недоступно | `PAST_DATE`; кнопка «Новая бронь» disabled, баннер «прошедшая дата», ячейки неактивны | 422 |
+| R6a | сегодня — прошедшие слоты недоступны; начало — с ближайшего будущего времени по сетке 15 мин | `PAST_TIME`; ячейки и варианты начала до «сейчас» недоступны, серый фон | 422 |
+| R6b | прошедшая дата — создание недоступно | `PAST_DATE` (поле `date`); «Новая бронь» disabled, баннер, ячейки закрыты, в календаре формы даты до сегодня недоступны | 422 |
+| R6c | начавшуюся/прошедшую бронь нельзя менять и удалять (ответ заказчика) | `hasStarted`: блок с замком; сервер на PATCH/DELETE → 422 | 422 |
 | R7 | при редактировании бронь не конфликтует сама с собой | `ignoreId` в контексте правил (форма и PATCH) | — |
 | R8 | сервер может вернуть 409, даже если UI считал слот свободным | см. §3.3 | 409 |
 
 Тест правил: `src/entities/booking/lib/bookingRules.test.ts` (`npm test`). Любое изменение правил — сначала тест.
 
-### 2.1 Принятые допущения (вопросы к заказчику — в README)
+### 2.1 Ответы заказчика (рекрутер Mad Devs, 22.10.2026)
 
-- **Часовой пояс** переговорной — `ROOM_TIME_ZONE = 'Asia/Bishkek'`. «Сейчас» и «сегодня» считаются в нём,
-  а не в поясе браузера/сервера (Vercel работает в UTC).
-- «Прошедший слот» = **начало** раньше текущего времени. Бронь 14:00–15:00 в 14:20 создать нельзя.
-- Начавшуюся/прошедшую бронь **нельзя изменить и удалить** (блок с замком, сервер отвечает 422).
-- Шаг времени — 15 минут (`SLOT_STEP_MIN`), сетка таймлайна — 30 минут.
-- `title` необязателен, до 80 символов, пустая строка → поле не сохраняется.
-- Одна переговорная (нет `roomId`).
+| Вопрос | Ответ | Как сделано |
+|---|---|---|
+| Часовой пояс | браузер пользователя | `useZonedNow()` без пояса; клиент шлёт `X-Time-Zone` (axios-интерсептор), сервер проверяет «сейчас» в этом поясе, без заголовка — UTC, мусор → 400 |
+| Выходные | только пн–пт | R0 |
+| Прошедший слот (сейчас 14:20) | с ближайшего будущего | первое начало — 14:30 |
+| Менять/удалять начавшиеся | нет | R6c |
+| Шаг времени | 15 минут | `SLOT_STEP_MIN` |
+| Перенос брони | можно менять всё | поле «Дата» в форме, PATCH принимает `date` |
+| Праздники | необязательно | не учитываются |
+| Переписка с AI | файл `.md` | `docs/ai-chat.md` (см. §4) |
+| 409-mock, хранилище, документация, авторизация, язык, тесты, горизонт | на усмотрение | ниже |
+
+### 2.2 Решения «на усмотрение»
+
+- **Авторизации нет** (ТЗ: «авторизация не нужна»): любой пользователь меняет и удаляет любую бронь.
+- Время брони хранится без пояса (`HH:mm`): все пользователи в одном офисе, пояс браузера нужен только для «сейчас».
+- 409 воспроизводится случайно (`MOCK_CONFLICT_RATE`, 20%); хранилище — in-memory.
+- Горизонт бронирования не ограничен, праздники не учитываются. `title` необязателен, до 80 символов.
+- Язык: русский (основной) + английский, переключатель RU/EN в шапке, выбор в localStorage. Сервер отвечает на языке из `Accept-Language`.
+- Тесты: unit (vitest, бизнес-правила) + e2e (Playwright).
+- Страница документации `/about` — полный разбор ТЗ, ответы рекрутера и эти решения. Меняем решение → правим и её (`messages/*.json → about`).
 
 ## 3. Нефункциональные требования ТЗ («что важно показать»)
 
@@ -120,13 +141,14 @@ DELETE /api/bookings/:id               → 204                       | 404 | 422
 type Booking = { id: string; date: string /* YYYY-MM-DD */; start: string /* HH:mm */; end: string; title?: string }
 ```
 Хранилище — in-memory `Map` на `globalThis` (переживает HMR, **не** переживает рестарт и не общее между
-serverless-инстансами Vercel). Сид: 2 брони сегодня, 1 завтра.
+serverless-инстансами Vercel). Сид: 2 брони на ближайший будний день, 1 — на следующий будний.
 
 ### 3.6 TypeScript и структура
 - `strict`, без `any`; типы выводятся из zod (`z.infer`). `import type` для типов (ESLint).
 - FSD: импорт только вниз, чужой слайс — через `index.ts`, `.tsx` тонкие (логика в `model/`/`lib/`).
 
 ### 3.7 Адаптивность и доступность
+- Общая шапка `SiteHeader` (sticky): логотип + навигация «Расписание» / «Как это работает», активная ссылка — `aria-current="page"`.
 - Работает от 360px: на мобилке короткая дата («чт, 22 окт.»), кнопка «Новая бронь» на всю ширину, форма в одну колонку.
 - `lang="ru"`, `main`/`header`/`nav`/`section` с подписями, `h1`→`h2`.
 - Свободные ячейки и брони — настоящие `<button>` с `aria-label` («Забронировать с 16:00», «Изменить бронь 10:00–11:00, …»), видимый `focus-visible`.
@@ -138,10 +160,18 @@ serverless-инстансами Vercel). Сид: 2 брони сегодня, 1 
 - [ ] Ссылка на репозиторий
 - [ ] README: как запустить, что сделано / не сделано, сколько времени заняло
 - [ ] Deployed demo (Vercel) — при деплое помнить про in-memory store (§3.5)
-- [ ] Экспорт переписки с AI
+- [ ] Переписка с AI — файлом `.md`: в конце работы `/export docs/ai-chat.md` в Claude Code
 - Таймбокс 4–6 ч. Не успеваем — в README приоритеты и что бы доделали.
 
-## 5. Как работать в проекте
+## 5. Переводы (next-intl)
+
+- Все тексты UI, правил и сервера — в `src/shared/i18n/messages/ru.json` и `en.json`, ключи одинаковые
+  (TS проверяет: `MESSAGES: Record<Locale, typeof ru>`). Новый текст — сразу в оба файла.
+- Компоненты: `useTranslations('booking.form')`; вне React (правила, сервер, `apiErrorMessage`) — `createTranslator`.
+- Формат ICU: переменные `{time}`, условия `{hasTitle, select, yes {…} other {}}`. Не использовать ASCII-апостроф `'` (экранирование ICU) — писать `’`.
+- Язык выбирается на клиенте (`useLocaleStore`, `skipHydration` → первый рендер на русском), `<html lang>` синхронизируется, axios шлёт его в `Accept-Language`.
+
+## 6. Как работать в проекте
 
 - Перед правкой Next-API — гайд в `node_modules/next/dist/docs/` (Next 16, см. AGENTS.md).
 - Новый shadcn-компонент: `npx shadcn@4 add <name>` → файл попадает в `./shared/ui`, перенести в `src/shared/ui/`
@@ -150,8 +180,12 @@ serverless-инстансами Vercel). Сид: 2 брони сегодня, 1 
   ```bash
   npm run lint:all   # eslint --max-warnings 0, tsc, steiger, tailwind-check, fsd-check
   npm test           # vitest: бизнес-правила
+  npm run e2e        # Playwright: собирает прод и поднимает его на :3200 (dev на :3000 не мешает)
   npm run build
   ```
 - Ручная проверка конфликта: `MOCK_CONFLICT_RATE=1 npm run dev` → любая новая бронь получает 409.
-- Скриншоты/артефакты браузера — не в репозиторий; `.playwright-mcp/` удалять после проверки.
+- e2e: `e2e/booking.spec.ts` — создание/редактирование/удаление, 409 (через `page.route`), прошедшая дата, выходной,
+  ошибка загрузки + «Повторить», язык, документация. Тег `@smoke` дополнительно гоняется на мобильном (Pixel 7).
+- Скриншоты/артефакты браузера — не в репозиторий; `.playwright-mcp/`, `playwright-report/`, `test-results/` удалять после проверки.
+- VS Code (`.vscode/settings.json`): `.md` открываются превью, двойной клик не переключает в исходник; Prettier on save.
 - `git add/commit/push` делает владелец.

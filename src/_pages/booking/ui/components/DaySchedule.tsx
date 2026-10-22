@@ -1,6 +1,7 @@
 'use client';
 
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { hasStarted } from '@/entities/booking';
 import type { Booking } from '@/entities/booking';
 import type { ZonedNow } from '@/shared/lib/time';
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export const DaySchedule = ({ date, now, bookings, onCreate, onEdit }: Props) => {
+  const t = useTranslations('booking.schedule');
   const nowLine = nowLinePosition(date, now);
 
   return (
@@ -32,25 +34,25 @@ export const DaySchedule = ({ date, now, bookings, onCreate, onEdit }: Props) =>
         ))}
       </ol>
       <div className="relative h-144 rounded-lg border">
-        <ul aria-label="Свободное время" className="flex h-full flex-col">
+        <ul aria-label={t('free')} className="flex h-full flex-col">
           {scheduleCells(date, now, bookings).map((cell) => (
             <li key={cell.start} className="flex-1 border-b border-dashed last:border-b-0">
               {cell.free ? (
                 <button
                   type="button"
-                  aria-label={`Забронировать с ${cell.start}`}
+                  aria-label={t('bookFrom', { time: cell.start })}
                   onClick={() => onCreate(cell.start)}
                   className="group flex size-full items-center justify-end px-3 text-muted-foreground outline-none hover:bg-accent focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                 >
                   <PlusIcon className="size-4 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100" />
                 </button>
               ) : (
-                <div className={cell.past ? 'size-full bg-muted/60' : 'size-full'} />
+                <div className={cell.closed ? 'size-full bg-muted/60' : 'size-full'} />
               )}
             </li>
           ))}
         </ul>
-        <ol aria-label="Брони" className="pointer-events-none absolute inset-0 px-1">
+        <ol aria-label={t('bookings')} className="pointer-events-none absolute inset-0 px-1">
           {bookings.map((booking) => (
             <li
               key={booking.id}

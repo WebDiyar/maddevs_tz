@@ -8,12 +8,12 @@ export type { Booking, BookingInput, BookingPatch } from './api/bookingApi';
 export {
   MAX_DURATION_MIN,
   MIN_DURATION_MIN,
-  ROOM_TIME_ZONE,
   SLOT_STEP_MIN,
   WORKDAY_END,
   WORKDAY_START,
   findRuleViolation,
   hasStarted,
+  isWorkday,
 } from './lib/bookingRules';
 export type { BookingSlot, RuleViolation, RuleViolationCode } from './lib/bookingRules';
 export { bookingQueryKeys } from './model/bookingQueryKeys';
