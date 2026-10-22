@@ -67,7 +67,19 @@ export const BookingDay = () => {
           <h2 id="schedule-title" className="text-lg font-medium">
             {t('schedule')}
           </h2>
-          {query.isFetching && !query.isPending ? (
+          {query.isError && query.data ? (
+            <span role="alert" className="flex items-center gap-2 text-xs text-danger-strong">
+              {t('refreshFailed')}
+              <Button
+                variant="link"
+                size="xs"
+                className="h-auto p-0"
+                onClick={() => void query.refetch()}
+              >
+                {t('retry')}
+              </Button>
+            </span>
+          ) : query.isFetching && !query.isPending ? (
             <span role="status" className="flex items-center gap-2 text-xs text-muted-foreground">
               <Spinner />
               {t('refreshing')}
@@ -77,7 +89,7 @@ export const BookingDay = () => {
           )}
         </div>
         <QueryZone
-          status={query.status}
+          status={query.data ? 'success' : query.status}
           error={query.error ? apiErrorMessage(query.error, locale) : undefined}
           errorTitle={t('loadError')}
           retryLabel={t('retry')}

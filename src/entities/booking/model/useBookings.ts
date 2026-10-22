@@ -1,6 +1,7 @@
 'use client';
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { createBooking, deleteBooking, updateBooking } from '../api/bookingApi';
 import { bookingsQueryOptions } from './bookingsQueryOptions';
 import { bookingQueryKeys } from './bookingQueryKeys';
@@ -14,7 +15,10 @@ export const useBookingsQuery = (date: string | null) =>
 
 export const usePrefetchBookingsQuery = () => {
   const queryClient = useQueryClient();
-  return (date: string) => queryClient.prefetchQuery(bookingsQueryOptions(date));
+  return useCallback(
+    (date: string) => queryClient.prefetchQuery(bookingsQueryOptions(date)),
+    [queryClient],
+  );
 };
 
 const useRefreshOnSettled = () => {

@@ -34,7 +34,7 @@ type Props = {
 };
 
 export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) => {
-  const { form, date, start, others, submit, changeDate, changeStart } = useBookingForm({
+  const { form, date, start, others, submit, changeDate, changeStart, changeEnd } = useBookingForm({
     editor,
     now,
     onSaved,
@@ -62,13 +62,18 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
               <FieldLabel htmlFor="booking-date">{t('date')}</FieldLabel>
               <DatePicker
                 id="booking-date"
+                describedBy={fieldState.invalid ? 'booking-date-error' : undefined}
                 value={field.value}
                 disabled={unavailableDays(toDate(now.date))}
                 isInvalid={fieldState.invalid}
                 onChange={changeDate}
                 className="w-full"
               />
-              <FieldError errors={[fieldState.error]} className="wrap-anywhere" />
+              <FieldError
+                id="booking-date-error"
+                errors={[fieldState.error]}
+                className="wrap-anywhere"
+              />
             </Field>
           )}
         />
@@ -80,6 +85,7 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
               <FieldLabel htmlFor="booking-start">{t('start')}</FieldLabel>
               <TimeSelect
                 id="booking-start"
+                describedBy={fieldState.invalid ? 'booking-start-error' : undefined}
                 value={field.value}
                 options={START_TIMES}
                 isOptionDisabled={(time) => isStartDisabled(time, date, now, others)}
@@ -87,7 +93,11 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
                 onChange={changeStart}
                 onBlur={field.onBlur}
               />
-              <FieldError errors={[fieldState.error]} className="wrap-anywhere" />
+              <FieldError
+                id="booking-start-error"
+                errors={[fieldState.error]}
+                className="wrap-anywhere"
+              />
             </Field>
           )}
         />
@@ -99,14 +109,19 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
               <FieldLabel htmlFor="booking-end">{t('end')}</FieldLabel>
               <TimeSelect
                 id="booking-end"
+                describedBy={fieldState.invalid ? 'booking-end-error' : undefined}
                 value={field.value}
                 options={END_TIMES}
                 isOptionDisabled={(time) => Boolean(start) && isEndDisabled(time, start, others)}
                 isInvalid={fieldState.invalid}
-                onChange={field.onChange}
+                onChange={changeEnd}
                 onBlur={field.onBlur}
               />
-              <FieldError errors={[fieldState.error]} className="wrap-anywhere" />
+              <FieldError
+                id="booking-end-error"
+                errors={[fieldState.error]}
+                className="wrap-anywhere"
+              />
             </Field>
           )}
         />
@@ -119,12 +134,17 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
               <Input
                 {...field}
                 id="booking-title"
+                aria-describedby={fieldState.invalid ? 'booking-title-error' : undefined}
                 maxLength={BOOKING_TITLE_MAX}
                 placeholder={t('titlePlaceholder')}
                 aria-invalid={fieldState.invalid}
                 autoComplete="off"
               />
-              <FieldError errors={[fieldState.error]} className="wrap-anywhere" />
+              <FieldError
+                id="booking-title-error"
+                errors={[fieldState.error]}
+                className="wrap-anywhere"
+              />
             </Field>
           )}
         />
@@ -134,7 +154,7 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
           <Button
             type="button"
             variant="ghost"
-            className="text-destructive"
+            className="text-danger-strong"
             disabled={isSubmitting}
             onClick={() => onDelete(editor.booking)}
           >

@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
@@ -190,4 +191,67 @@ test('переключатель темы', async ({ page }) => {
   await expect(page.locator('html')).not.toHaveClass(/dark/);
   await toggle.click();
   await expect(page.locator('html')).toHaveClass(/dark/);
+});
+
+test('форму нельзя закрыть во время сохранения, фокус возвращается', async ({ page }) => {
+  await goToFutureWorkday(page);
+  await page.route('**/api/bookings', async (route) => {
+    if (route.request().method() === 'POST') await new Promise((done) => setTimeout(done, 800));
+    await route.continue();
+  });
+  const cell = page.getByRole('button', { name: 'Забронировать с 16:00' });
+  await cell.focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: 'Забронировать', exact: true }).click();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeVisible();
+  await expect(page.getByText('Бронь создана')).toBeVisible();
+  await expect(dialog).toBeHidden();
+
+  const block = page.getByRole('button', { name: /^Изменить бронь 16:00–17:00/ });
+  await block.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Escape');
+  await expect(block).toBeFocused();
+
+  await block.click();
+  await dialog.getByRole('button', { name: 'Удалить' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Удалить' }).click();
+  await expect(page.getByText('Бронь удалена')).toBeVisible();
+});
+
+test('ошибка фонового обновления не прячет расписание', async ({ page }) => {
+  await goToFutureWorkday(page);
+  await page.route('**/api/bookings?*', (route) => route.fulfill({ status: 500, json: {} }));
+  await page.getByRole('button', { name: 'Забронировать с 16:00' }).click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Забронировать', exact: true })
+    .click();
+  await expect(page.getByText('Не удалось обновить расписание')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('list', { name: 'Свободное время' })).toBeVisible();
+
+  await page.unroute('**/api/bookings?*');
+  await page.getByRole('button', { name: 'Повторить' }).click();
+  const created = page.getByRole('button', { name: /^Изменить бронь 16:00–17:00/ });
+  await created.click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Удалить' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Удалить' }).click();
+  await expect(created).toHaveCount(0);
+});
+
+test('доступность: нет нарушений WCAG 2 AA @smoke', async ({ page }) => {
+  const audit = async () => {
+    const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+    expect(violations.map((v) => `${v.id}: ${v.nodes[0]?.target}`)).toEqual([]);
+  };
+  await goToFutureWorkday(page);
+  await audit();
+  await page.getByRole('button', { name: 'Новая бронь' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.waitForTimeout(300);
+  await audit();
+  await page.goto('/about');
+  await audit();
 });

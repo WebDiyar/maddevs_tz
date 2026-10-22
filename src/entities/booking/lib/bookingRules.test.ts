@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findRuleViolation } from './bookingRules';
+import { findRuleViolation, hasStarted } from './bookingRules';
 import { ruleMessage } from './ruleMessage';
 
 const now = { date: '2026-10-22', minutes: 12 * 60 };
@@ -68,5 +68,14 @@ describe('findRuleViolation', () => {
     expect(check('13:00', '14:00', '2026-10-21')).toBe('PAST_DATE');
     expect(check('11:30', '12:30', '2026-10-22')).toBe('PAST_TIME');
     expect(check('12:00', '13:00', '2026-10-22')).toBeNull();
+  });
+});
+
+describe('seconds matter for "now"', () => {
+  it('treats a slot that started seconds ago as past', () => {
+    const at = { date: '2026-10-22', minutes: 14 * 60 + 15 + 40 / 60 };
+    const slot = { date: '2026-10-22', start: '14:15', end: '15:00' };
+    expect(findRuleViolation(slot, { bookings: [], now: at })?.code).toBe('PAST_TIME');
+    expect(hasStarted(slot, at)).toBe(true);
   });
 });

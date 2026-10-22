@@ -21,11 +21,20 @@ type Props = {
   value: string;
   disabled?: Matcher[];
   isInvalid?: boolean;
+  describedBy?: string;
   className?: string;
   onChange: (date: string) => void;
 };
 
-export const DatePicker = ({ id, value, disabled, isInvalid, className, onChange }: Props) => {
+export const DatePicker = ({
+  id,
+  value,
+  disabled,
+  isInvalid,
+  describedBy,
+  className,
+  onChange,
+}: Props) => {
   const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -36,6 +45,7 @@ export const DatePicker = ({ id, value, disabled, isInvalid, className, onChange
           id={id}
           variant="outline"
           aria-invalid={isInvalid}
+          aria-describedby={describedBy}
           className={cn('min-w-0 justify-start', className)}
         >
           <CalendarIcon />

@@ -1,7 +1,9 @@
 'use client';
 
+import { useIsMutating } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import type { ZonedNow } from '@/shared/lib/time';
+import { useReturnFocus } from '@/shared/model';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +26,8 @@ export const BookingFormDialog = ({ now }: Props) => {
   const closeEditor = useBookingPageStore((state) => state.closeEditor);
   const askDelete = useBookingPageStore((state) => state.askDelete);
   const { selectDate } = useSelectedDate();
+  const returnFocus = useReturnFocus();
+  const isSaving = useIsMutating() > 0;
 
   const finish = (date: string) => {
     closeEditor();
@@ -31,8 +35,8 @@ export const BookingFormDialog = ({ now }: Props) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && closeEditor()}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isSaving && closeEditor()}>
+      <DialogContent className="sm:max-w-md" showCloseButton={!isSaving} {...returnFocus}>
         <DialogHeader>
           <DialogTitle>{editor?.mode === 'edit' ? t('editTitle') : t('createTitle')}</DialogTitle>
           <DialogDescription>{t('description')}</DialogDescription>

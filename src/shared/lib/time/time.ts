@@ -47,6 +47,7 @@ const formatterFor = (timeZone?: string) => {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
+      second: '2-digit',
       hourCycle: 'h23',
     });
     formatters.set(timeZone ?? '', formatter);
@@ -62,6 +63,7 @@ export const zonedNow = (timeZone?: string, at: Date = new Date()): ZonedNow => 
   );
   return {
     date: `${parts.year}-${parts.month}-${parts.day}`,
-    minutes: Number(parts.hour) * MINUTES_IN_HOUR + Number(parts.minute),
+    minutes:
+      Number(parts.hour) * MINUTES_IN_HOUR + Number(parts.minute) + Number(parts.second) / 60,
   };
 };

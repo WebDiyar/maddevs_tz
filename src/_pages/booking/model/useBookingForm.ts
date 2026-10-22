@@ -74,15 +74,24 @@ export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
   const create = useCreateBookingMutation();
   const update = useUpdateBookingMutation();
 
+  const revalidate = () => void form.trigger(['date', 'start', 'end']);
+
   const changeDate = (next: string) => {
-    form.setValue('date', next, { shouldValidate: true, shouldDirty: true });
+    form.setValue('date', next, { shouldDirty: true, shouldTouch: true });
+    revalidate();
   };
 
   const changeStart = (next: string) => {
-    form.setValue('start', next, { shouldValidate: true, shouldDirty: true });
+    form.setValue('start', next, { shouldDirty: true, shouldTouch: true });
     if (isEndDisabled(form.getValues('end'), next, others)) {
-      form.setValue('end', defaultEnd(next, others), { shouldValidate: true, shouldDirty: true });
+      form.setValue('end', defaultEnd(next, others), { shouldDirty: true });
     }
+    revalidate();
+  };
+
+  const changeEnd = (next: string) => {
+    form.setValue('end', next, { shouldDirty: true, shouldTouch: true });
+    revalidate();
   };
 
   const submit = form.handleSubmit(async (values) => {
@@ -106,5 +115,5 @@ export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
     }
   });
 
-  return { form, date, start, others, submit, changeDate, changeStart };
+  return { form, date, start, others, submit, changeDate, changeStart, changeEnd };
 };

@@ -14,7 +14,8 @@
     "refreshing": "Refreshing…",
     "fullyBooked": "No free time left on this day — pick another date.",
     "metaTitle": "Schedule · Meeting room",
-    "createHint": "New booking (N)"
+    "createHint": "New booking (N)",
+    "refreshFailed": "Could not refresh the schedule — showing the last loaded data."
   },
   "nav": {
     "label": "Date selection",

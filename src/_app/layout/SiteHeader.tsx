@@ -18,7 +18,7 @@ export const SiteHeader = () => {
       <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between gap-2 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold">
           <CalendarClockIcon aria-hidden className="size-5" />
-          <span className="hidden sm:inline">{t('brand')}</span>
+          <span className="max-sm:sr-only">{t('brand')}</span>
         </Link>
         <div className="flex items-center gap-2">
           <nav aria-label={t('navLabel')} className="flex items-center gap-1">

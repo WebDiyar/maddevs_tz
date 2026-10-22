@@ -92,6 +92,13 @@ describe('dragRange', () => {
 });
 
 describe('daySummary', () => {
+  it('ignores gaps too short to book', () => {
+    const late = { date: '2026-10-22', minutes: 17 * 60 + 40 };
+    expect(daySummary('2026-10-22', late, []).freeMinutes).toBe(0);
+    const day = [booking('09:00', '10:45'), booking('11:00', '18:00')];
+    expect(daySummary('2026-10-23', now, day).freeMinutes).toBe(0);
+  });
+
   it('counts free time from now on', () => {
     expect(daySummary('2026-10-23', now, [booking('10:00', '11:00')])).toEqual({
       count: 1,

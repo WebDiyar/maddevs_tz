@@ -177,13 +177,20 @@ export const daySummary = (
   now: ZonedNow,
   bookings: readonly Booking[],
 ): DaySummary => {
+  const count = bookings.length;
+  if (!isWorkday(date) || date < now.date) return { count, freeMinutes: 0 };
   const from = date === now.date ? Math.max(DAY_START, ceilToStep(now.minutes)) : DAY_START;
-  const open = isWorkday(date) && date >= now.date ? Math.max(DAY_END - from, 0) : 0;
-  const busy = bookings.reduce(
-    (sum, b) => sum + Math.max(0, toMinutes(b.end) - Math.max(toMinutes(b.start), from)),
-    0,
-  );
-  return { count: bookings.length, freeMinutes: Math.max(open - busy, 0) };
+  const busy = [...bookings]
+    .map((b) => [toMinutes(b.start), toMinutes(b.end)] as const)
+    .sort((x, y) => x[0] - y[0]);
+  let cursor = from;
+  let freeMinutes = 0;
+  for (const [start, end] of [...busy, [DAY_END, DAY_END] as const]) {
+    const gap = start - cursor;
+    if (gap >= MIN_DURATION_MIN) freeMinutes += gap;
+    cursor = Math.max(cursor, end);
+  }
+  return { count, freeMinutes };
 };
 
 const TIMELINE_HEIGHT_PX = 576;

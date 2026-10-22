@@ -46,6 +46,7 @@ export const DaySchedule = ({ date, now, bookings, isStale, onCreate, onEdit }: 
         {...handlers}
         data-stale={isStale || undefined}
         aria-busy={isStale}
+        inert={isStale}
         className={cn(
           'relative h-144 rounded-lg border transition-opacity data-stale:pointer-events-none data-stale:opacity-60',
           isDragging && 'cursor-ns-resize select-none',

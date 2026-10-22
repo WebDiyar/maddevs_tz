@@ -4,7 +4,7 @@ import { useMemo, useSyncExternalStore } from 'react';
 import { zonedNow } from '@/shared/lib/time';
 import type { ZonedNow } from '@/shared/lib/time';
 
-const TICK_MS = 30_000;
+const TICK_MS = 10_000;
 
 const subscribe = (onChange: () => void) => {
   const timer = window.setInterval(onChange, TICK_MS);
@@ -21,7 +21,7 @@ export const useZonedNow = (): ZonedNow | null => {
     subscribe,
     () => {
       const now = zonedNow();
-      return `${now.date}|${now.minutes}`;
+      return `${now.date}|${Math.ceil(now.minutes)}`;
     },
     () => null,
   );

@@ -6,6 +6,7 @@ type Props = {
   options: readonly string[];
   isOptionDisabled: (time: string) => boolean;
   isInvalid: boolean;
+  describedBy?: string;
   onChange: (time: string) => void;
   onBlur: () => void;
 };
@@ -16,11 +17,18 @@ export const TimeSelect = ({
   options,
   isOptionDisabled,
   isInvalid,
+  describedBy,
   onChange,
   onBlur,
 }: Props) => (
   <Select value={value} onValueChange={onChange}>
-    <SelectTrigger id={id} aria-invalid={isInvalid} onBlur={onBlur} className="w-full font-mono">
+    <SelectTrigger
+      id={id}
+      aria-invalid={isInvalid}
+      aria-describedby={describedBy}
+      onBlur={onBlur}
+      className="w-full font-mono"
+    >
       <SelectValue placeholder="--:--" />
     </SelectTrigger>
     <SelectContent className="max-h-72">

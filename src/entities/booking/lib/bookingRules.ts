@@ -84,7 +84,7 @@ export const findRuleViolation = (
     return { code: 'TOO_LONG', field: 'end', params: { hours: MAX_DURATION_MIN / 60 } };
   }
   if (slot.date === now.date && start < now.minutes) {
-    return { code: 'PAST_TIME', field: 'start', params: { now: toTime(now.minutes) } };
+    return { code: 'PAST_TIME', field: 'start', params: { now: toTime(Math.floor(now.minutes)) } };
   }
   const conflict = findConflict(slot, context);
   if (conflict) {
