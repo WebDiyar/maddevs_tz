@@ -1,6 +1,7 @@
 export {
   DATE_PATTERN,
   TIME_PATTERN,
+  isCalendarDate,
   isValidTimeZone,
   shiftDate,
   toMinutes,

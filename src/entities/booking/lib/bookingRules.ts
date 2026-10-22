@@ -16,6 +16,7 @@ export type ExistingBooking = BookingSlot & { id: string; title?: string };
 export type RuleViolationCode =
   | 'PAST_DATE'
   | 'WEEKEND'
+  | 'OFF_GRID'
   | 'PAST_TIME'
   | 'START_OUTSIDE_WORKDAY'
   | 'END_OUTSIDE_WORKDAY'
@@ -59,6 +60,12 @@ export const findRuleViolation = (
 
   if (slot.date < now.date) return { code: 'PAST_DATE', field: 'date' };
   if (!isWorkday(slot.date)) return { code: 'WEEKEND', field: 'date' };
+  if (start % SLOT_STEP_MIN !== 0) {
+    return { code: 'OFF_GRID', field: 'start', params: { step: SLOT_STEP_MIN } };
+  }
+  if (end % SLOT_STEP_MIN !== 0) {
+    return { code: 'OFF_GRID', field: 'end', params: { step: SLOT_STEP_MIN } };
+  }
   if (start < toMinutes(WORKDAY_START) || start >= toMinutes(WORKDAY_END)) {
     return {
       code: 'START_OUTSIDE_WORKDAY',

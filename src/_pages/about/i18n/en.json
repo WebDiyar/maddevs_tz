@@ -38,6 +38,7 @@
         "7. When editing, a booking does not conflict with itself.",
         "8. The server may return 409 even if the UI considered the slot free. The UI shows a clear message in the form, refetches the bookings and keeps the form open — the entered data is preserved.",
         "Additionally (recruiter clarification): bookings on weekdays only, Mon–Fri. Bookings that have started or ended cannot be changed or deleted — the block shows a lock.",
+        "Time is on a 15-minute step only — in the UI and on the server (10:07 → 422). A non-existent date (Nov 31) → 400.",
         "All rules are one function shared by the form and the mock server: the form checks instantly, the server has the final word. The rules are covered by unit tests."
       ]
     },
@@ -75,7 +76,8 @@
         "DELETE /api/bookings/:id → 204 | 404 | 422",
         "Booking = { id, date: YYYY-MM-DD, start: HH:mm, end: HH:mm, title? }",
         "Error: { code, message, field? }. The message is in the language from the Accept-Language header.",
-        "The X-Time-Zone header carries the browser time zone: the server uses it to determine “now” for the past-time rule."
+        "The X-Time-Zone header carries the browser time zone: the server uses it to determine “now” for the past-time rule.",
+        "Dates are checked against the calendar (2026-11-31 → 400); format errors come in the interface language."
       ]
     },
     {

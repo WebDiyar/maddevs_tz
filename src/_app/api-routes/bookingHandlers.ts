@@ -1,5 +1,5 @@
 import { createTranslator } from 'next-intl';
-import type { z } from 'zod';
+import { z } from 'zod';
 import {
   bookingInputSchema,
   bookingPatchSchema,
@@ -10,7 +10,7 @@ import {
 import type { Booking, BookingInput } from '@/entities/booking';
 import { TIME_ZONE_HEADER } from '@/shared/config';
 import type { Locale } from '@/shared/config';
-import { DATE_PATTERN, zonedNow } from '@/shared/lib/time';
+import { isCalendarDate, zonedNow } from '@/shared/lib/time';
 import { apiError, readJson, requestLocale, requestTimeZone, simulateLatency } from './apiResponse';
 import { bookingStore, bookingsOn } from './bookingStore';
 import en from './i18n/en.json';
@@ -20,6 +20,11 @@ type IdContext = { params: Promise<{ id: string }> };
 type Slot = Omit<Booking, 'id'>;
 
 const MESSAGES = { ru, en } satisfies Record<Locale, typeof ru>;
+
+const ZOD_LOCALES = { ru: z.locales.ru(), en: z.locales.en() } satisfies Record<Locale, unknown>;
+
+const parseBody = <T extends z.ZodType>(schema: T, data: unknown, locale: Locale) =>
+  schema.safeParse(data, { error: ZOD_LOCALES[locale].localeError });
 
 const CONFLICT_RATE = Number(process.env.MOCK_CONFLICT_RATE ?? 0.2);
 
@@ -73,13 +78,13 @@ export const listBookings = async (request: Request) => {
   await simulateLatency();
   const { t } = requestContext(request);
   const date = new URL(request.url).searchParams.get('date') ?? '';
-  if (!DATE_PATTERN.test(date)) return apiError('BAD_REQUEST', t('badDate'), 'date');
+  if (!isCalendarDate(date)) return apiError('BAD_REQUEST', t('badDate'), 'date');
   return Response.json(bookingsOn(date));
 };
 
 export const createBooking = async (request: Request) => {
   const { locale, t, timeZone } = requestContext(request);
-  const parsed = bookingInputSchema.safeParse(await readJson(request));
+  const parsed = parseBody(bookingInputSchema, await readJson(request), locale);
   await simulateLatency();
   if (!parsed.success) return invalidBody(parsed.error, locale);
   if (!timeZone) return apiError('BAD_REQUEST', t('badTimeZone', { header: TIME_ZONE_HEADER }));
@@ -97,7 +102,7 @@ export const createBooking = async (request: Request) => {
 export const updateBooking = async (request: Request, { params }: IdContext) => {
   const { id } = await params;
   const { locale, t, timeZone } = requestContext(request);
-  const parsed = bookingPatchSchema.safeParse(await readJson(request));
+  const parsed = parseBody(bookingPatchSchema, await readJson(request), locale);
   await simulateLatency();
   if (!parsed.success) return invalidBody(parsed.error, locale);
   if (!timeZone) return apiError('BAD_REQUEST', t('badTimeZone', { header: TIME_ZONE_HEADER }));

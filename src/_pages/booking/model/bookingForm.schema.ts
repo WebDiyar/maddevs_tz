@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { BOOKING_TITLE_MAX, findRuleViolation, ruleMessage } from '@/entities/booking';
 import type { Booking } from '@/entities/booking';
 import type { Locale } from '@/shared/config';
-import { DATE_PATTERN, TIME_PATTERN } from '@/shared/lib/time';
+import { TIME_PATTERN, isCalendarDate } from '@/shared/lib/time';
 import type { ZonedNow } from '@/shared/lib/time';
 
 export type BookingFormValues = {
@@ -23,7 +23,7 @@ export type BookingRulesContext = {
 export const bookingFormSchema = ({ text, locale, ...context }: BookingRulesContext) =>
   z
     .object({
-      date: z.string().regex(DATE_PATTERN, text.pickDate),
+      date: z.string().refine(isCalendarDate, text.pickDate),
       start: z.string().regex(TIME_PATTERN, text.pickStart),
       end: z.string().regex(TIME_PATTERN, text.pickEnd),
       title: z.string().trim().max(BOOKING_TITLE_MAX, text.titleTooLong),

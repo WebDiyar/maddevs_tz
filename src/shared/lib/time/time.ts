@@ -13,6 +13,9 @@ export const toTime = (minutes: number) => {
   return `${hours}:${String(minutes % MINUTES_IN_HOUR).padStart(2, '0')}`;
 };
 
+export const isCalendarDate = (value: string) =>
+  DATE_PATTERN.test(value) && new Date(`${value}T00:00:00Z`).toISOString().startsWith(value);
+
 export const shiftDate = (date: string, days: number) => {
   const shifted = new Date(`${date}T00:00:00Z`);
   shifted.setUTCDate(shifted.getUTCDate() + days);

@@ -115,3 +115,12 @@ test('страница документации из шапки @smoke', async (
     page.getByRole('heading', { name: '7. Уточнения от рекрутера Mad Devs' }),
   ).toBeVisible();
 });
+
+test('страница 404 на языке интерфейса', async ({ page }) => {
+  await page.goto('/nope');
+  await expect(page.getByRole('heading', { level: 1, name: 'Страница не найдена' })).toBeVisible();
+  await page.getByRole('button', { name: 'EN' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible();
+  await page.getByRole('link', { name: 'Back to schedule' }).click();
+  await expect(page).toHaveURL('/');
+});

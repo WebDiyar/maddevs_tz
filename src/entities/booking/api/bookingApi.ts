@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { http } from '@/shared/api';
-import { DATE_PATTERN, TIME_PATTERN } from '@/shared/lib/time';
+import { TIME_PATTERN, isCalendarDate } from '@/shared/lib/time';
 
 export const BOOKING_TITLE_MAX = 80;
 
-const dateField = z.string().regex(DATE_PATTERN, 'Дата в формате YYYY-MM-DD');
-const timeField = z.string().regex(TIME_PATTERN, 'Время в формате HH:mm');
+const dateField = z.string().refine(isCalendarDate, 'YYYY-MM-DD');
+const timeField = z.string().regex(TIME_PATTERN, 'HH:mm');
 
 export const bookingSchema = z.object({
   id: z.string(),

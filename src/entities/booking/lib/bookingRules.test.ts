@@ -36,6 +36,12 @@ describe('findRuleViolation', () => {
     expect(check('10:15', '10:45', '2026-10-23', 'a')).toBeNull();
   });
 
+  it('keeps start and end on the 15-minute grid', () => {
+    expect(check('10:07', '10:52')).toBe('OFF_GRID');
+    expect(check('13:00', '13:40')).toBe('OFF_GRID');
+    expect(check('13:15', '13:45')).toBeNull();
+  });
+
   it('allows weekdays only', () => {
     expect(check('13:00', '14:00', '2026-10-24')).toBe('WEEKEND');
     expect(check('13:00', '14:00', '2026-10-25')).toBe('WEEKEND');

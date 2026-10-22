@@ -1,6 +1,7 @@
 {
   "PAST_DATE": "Past dates cannot be booked",
   "WEEKEND": "The room is available on weekdays only (Mon–Fri)",
+  "OFF_GRID": "Time must be on a {step}-minute step (e.g. 10:00, 10:15, 10:30)",
   "START_OUTSIDE_WORKDAY": "Start must be within working hours {from}–{to}",
   "END_OUTSIDE_WORKDAY": "End must be no later than {to}",
   "START_NOT_BEFORE_END": "End must be after start",
