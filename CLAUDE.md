@@ -54,6 +54,13 @@ src/
 | F5 | Редактировать | клик по блоку брони → та же форма; меняется всё: дата, время, название. После сохранения расписание переключается на дату брони | `PATCH /api/bookings/:id` |
 | F6 | Удалить | кнопка «Удалить» в форме → `AlertDialog` подтверждения | `DELETE /api/bookings/:id` |
 | F7 | Формат отображения — на выбор | таймлайн (календарь дня) | — |
+| F9 | Дата в URL `?date=` (сверх ТЗ) | `model/useSelectedDate` (`router.replace`, невалидная → сегодня); страница в `<Suspense>` | e2e «дата в URL» |
+| F10 | Выделение интервала мышью (только `pointerType=mouse`) | `lib/schedule.dragRange` (чистая, тест) + `model/useDragSelect`; захват указателя только после 6px — клик по ячейке работает как раньше | e2e «выделение» |
+| F11 | Занятое время недоступно в «Начало/Окончание» | `isStartDisabled/isEndDisabled(…, others)`; `defaultEnd` — самое длинное окончание ≤ +1 ч, которое влезает | unit + e2e |
+| F12 | Сводка дня | `lib/schedule.daySummary` + `DaySummaryLine` (ICU plural) | unit |
+| F13 | Горячие клавиши ← → T N | `model/useBookingHotkeys` (не срабатывают в полях и при открытых диалогах), `aria-keyshortcuts` | e2e |
+| F14 | Тема system/light/dark | `_app/layout/ThemeSwitch` (next-themes) | e2e |
+| F15 | Предзагрузка ±1 день, без мигания при смене дня | `usePrefetchBookingsQuery`, `placeholderData: keepPreviousData` → `isStale` (полупрозрачно, без кликов; баннеры/сводка не считаются по старым данным) | вручную |
 | F8 | Документация (сверх ТЗ, согласовано) | `/about` «Как это работает», ссылка в шапке | открыть страницу |
 
 ## 2. Бизнес-правила ТЗ

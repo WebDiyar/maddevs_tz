@@ -33,7 +33,7 @@ const initialValues = (editor: BookingEditor): BookingFormValues => {
     const { date, start, end, title } = editor.booking;
     return { date, start, end, title: title ?? '' };
   }
-  return { date: editor.date, start: editor.start, end: defaultEnd(editor.start), title: '' };
+  return { date: editor.date, start: editor.start, end: editor.end, title: '' };
 };
 
 export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
@@ -64,7 +64,9 @@ export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
   });
 
   const [date, start] = useWatch({ control: form.control, name: ['date', 'start'] });
-  const bookings = useBookingsQuery(date).data ?? NO_BOOKINGS;
+  const query = useBookingsQuery(date);
+  const bookings = (query.isPlaceholderData ? undefined : query.data) ?? NO_BOOKINGS;
+  const others = bookings.filter((booking) => booking.id !== ignoreId);
   useEffect(() => {
     context.current = { now, bookings, ignoreId, locale, text };
   });
@@ -78,8 +80,8 @@ export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
 
   const changeStart = (next: string) => {
     form.setValue('start', next, { shouldValidate: true, shouldDirty: true });
-    if (isEndDisabled(form.getValues('end'), next)) {
-      form.setValue('end', defaultEnd(next), { shouldValidate: true, shouldDirty: true });
+    if (isEndDisabled(form.getValues('end'), next, others)) {
+      form.setValue('end', defaultEnd(next, others), { shouldValidate: true, shouldDirty: true });
     }
   };
 
@@ -104,5 +106,5 @@ export const useBookingForm = ({ editor, now, onSaved, onClose }: Params) => {
     }
   });
 
-  return { form, date, start, submit, changeDate, changeStart };
+  return { form, date, start, others, submit, changeDate, changeStart };
 };

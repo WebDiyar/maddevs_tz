@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/shared/ui/button';
 import { LocaleSwitch } from './LocaleSwitch';
+import { ThemeSwitch } from './ThemeSwitch';
 import { NAV_ITEMS } from './nav.config';
 
 export const SiteHeader = () => {
@@ -31,13 +32,15 @@ export const SiteHeader = () => {
                   size="sm"
                 >
                   <Link href={item.href} aria-current={isActive ? 'page' : undefined}>
-                    {t(item.key)}
+                    <item.icon aria-hidden className="sm:hidden" />
+                    <span className="max-sm:sr-only">{t(item.key)}</span>
                   </Link>
                 </Button>
               );
             })}
           </nav>
           <LocaleSwitch />
+          <ThemeSwitch />
         </div>
       </div>
     </header>

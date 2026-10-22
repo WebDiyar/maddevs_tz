@@ -25,9 +25,21 @@ export const DeleteBookingDialog = () => {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t('title')}</AlertDialogTitle>
-          <AlertDialogDescription className="first-letter:uppercase">
-            {deleting &&
-              `${formatLongDate(deleting.date, locale)}, ${deleting.start}–${deleting.end}${deleting.title ? ` · ${deleting.title}` : ''}`}
+          <AlertDialogDescription asChild>
+            <div className="flex flex-col gap-1">
+              {deleting && (
+                <>
+                  <span className="first-letter:uppercase">
+                    {formatLongDate(deleting.date, locale)}, {deleting.start}–{deleting.end}
+                  </span>
+                  {deleting.title && (
+                    <span className="font-medium wrap-anywhere text-foreground">
+                      {deleting.title}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -13,13 +13,17 @@
     "retry": "Retry",
     "refreshing": "Refreshing…",
     "fullyBooked": "No free time left on this day — pick another date.",
-    "metaTitle": "Schedule · Meeting room"
+    "metaTitle": "Schedule · Meeting room",
+    "createHint": "New booking (N)"
   },
   "nav": {
     "label": "Date selection",
     "prev": "Previous day",
     "next": "Next day",
-    "today": "Today"
+    "today": "Today",
+    "prevHint": "Previous day (←)",
+    "nextHint": "Next day (→)",
+    "todayHint": "Today (T)"
   },
   "schedule": {
     "free": "Free time",
@@ -57,5 +61,13 @@
     "cancel": "Cancel",
     "done": "Booking deleted",
     "alreadyGone": "Booking was already deleted"
+  },
+  "summary": {
+    "bookings": "{count, plural, =0 {No bookings} one {# booking} other {# bookings}}",
+    "free": "{duration} free",
+    "nearest": "next free — {time}",
+    "hm": "{hours}h {minutes}m",
+    "h": "{hours}h",
+    "m": "{minutes}m"
   }
 }

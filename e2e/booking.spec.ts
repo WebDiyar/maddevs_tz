@@ -124,3 +124,70 @@ test('страница 404 на языке интерфейса', async ({ page 
   await page.getByRole('link', { name: 'Back to schedule' }).click();
   await expect(page).toHaveURL('/');
 });
+
+test('дата в URL и горячие клавиши', async ({ page }) => {
+  await page.keyboard.press('ArrowRight');
+  await expect(page).toHaveURL(/\?date=\d{4}-\d{2}-\d{2}$/);
+  const url = page.url();
+  await page.reload();
+  await expect(page).toHaveURL(url);
+  await page.keyboard.press('KeyT');
+  await expect(page.getByRole('button', { name: 'Сегодня' })).toBeDisabled();
+
+  await page.goto('/?date=2026-13-45');
+  await expect(page.getByRole('button', { name: 'Сегодня' })).toBeDisabled();
+});
+
+test('занятое время недоступно в списке начала', async ({ page }) => {
+  await goToFutureWorkday(page);
+  const dialog = page.getByRole('dialog');
+  await page.getByRole('button', { name: 'Забронировать с 16:00' }).click();
+  await dialog.getByRole('button', { name: 'Забронировать', exact: true }).click();
+  await expect(page.getByText('Бронь создана')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Забронировать с 14:00' }).click();
+  await dialog.getByLabel('Начало').click();
+  await expect(page.getByRole('option', { name: '15:45' })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  );
+  await expect(page.getByRole('option', { name: '16:30' })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  );
+  await expect(page.getByRole('option', { name: '17:00' })).not.toHaveAttribute(
+    'aria-disabled',
+    'true',
+  );
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: /^Изменить бронь 16:00–17:00/ }).click();
+  await dialog.getByRole('button', { name: 'Удалить' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Удалить' }).click();
+  await expect(page.getByText('Бронь удалена')).toBeVisible();
+});
+
+test('выделение интервала мышью открывает форму', async ({ page }) => {
+  await goToFutureWorkday(page);
+  const from = await page.getByRole('button', { name: 'Забронировать с 13:00' }).boundingBox();
+  const to = await page.getByRole('button', { name: 'Забронировать с 14:00' }).boundingBox();
+  if (!from || !to) throw new Error('timeline is not visible');
+  await page.mouse.move(from.x + 50, from.y + 2);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 50, to.y + to.height - 2, { steps: 8 });
+  await expect(page.getByRole('status').filter({ hasText: '13:00–14:30' })).toBeVisible();
+  await page.mouse.up();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByLabel('Начало')).toHaveText('13:00');
+  await expect(dialog.getByLabel('Окончание')).toHaveText('14:30');
+});
+
+test('переключатель темы', async ({ page }) => {
+  const toggle = page.getByRole('button', { name: /^Тема:/ });
+  await toggle.click();
+  await expect(page.locator('html')).not.toHaveClass(/dark/);
+  await toggle.click();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+});

@@ -4,6 +4,12 @@
     "navLabel": "Main navigation",
     "schedule": "Schedule",
     "about": "How it works",
-    "language": "Interface language"
+    "language": "Interface language",
+    "theme": {
+      "label": "Theme: {current}. Switch to “{next}”",
+      "system": "system",
+      "light": "light",
+      "dark": "dark"
+    }
   }
 }

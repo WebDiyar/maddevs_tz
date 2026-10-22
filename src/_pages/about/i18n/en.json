@@ -22,6 +22,13 @@
         "Create: the “New booking” button (first free time) or a click on a free cell (its time).",
         "Edit: click a booking — date, time and title can be changed; after saving the schedule switches to the booking date.",
         "Delete: the “Delete” button in the booking form, with confirmation.",
+        "The selected date lives in the URL (/?date=2026-10-23): survives a reload and can be shared.",
+        "Drag on the timeline with the mouse to select a range; it never crosses another booking and is at most 2 hours. On phones — tap a cell.",
+        "Occupied time is disabled in the form: you cannot pick a start or end that would overlap another booking.",
+        "A day summary above the timeline: number of bookings, free time and the next free slot (click opens the form).",
+        "Keyboard shortcuts: ← → previous/next day, T today, N new booking (hints in button tooltips).",
+        "Theme: system, light or dark — a button in the header.",
+        "Neighbouring days are prefetched so the arrows are instant; while a day loads, the previous schedule stays dimmed instead of a skeleton.",
         "Header with “Schedule” / “How it works” navigation and an RU / EN language switch."
       ]
     },
@@ -145,6 +152,9 @@
         "Create: click a free cell → the form opens with that time → “Book”.",
         "Edit: click a booking → change date, time or title → “Save”.",
         "Delete: click a booking → “Delete” → confirm.",
+        "Range select: press the mouse on free time and drag up or down — a frame shows the range, releasing opens the form.",
+        "URL date: switch to another day and reload — the day is kept.",
+        "Keys: ← → T N on the schedule page.",
         "Note: the random 409 is a simulation, not a bug. If creating a booking shows “taken by another user”, that is intended — retry with another time.",
         "Conflict 409: create bookings — about every fifth gets 409. The message appears in the form, a “Taken by a colleague” booking appears on the timeline, your input stays.",
         "Overlap: pick a time taken by another booking — an error under the field before submitting.",

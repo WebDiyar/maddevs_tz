@@ -5,20 +5,29 @@ import { useTranslations } from 'next-intl';
 import { hasStarted } from '@/entities/booking';
 import type { Booking } from '@/entities/booking';
 import type { ZonedNow } from '@/shared/lib/time';
+import { cn } from 'cn';
 import { HOUR_MARKS, blockPosition, nowLinePosition, scheduleCells } from '../../lib/schedule';
+import { useDragSelect } from '../../model/useDragSelect';
 import { BookingBlock } from './BookingBlock';
 
 type Props = {
   date: string;
   now: ZonedNow;
   bookings: readonly Booking[];
-  onCreate: (start: string) => void;
+  isStale: boolean;
+  onCreate: (start: string, end?: string) => void;
   onEdit: (booking: Booking) => void;
 };
 
-export const DaySchedule = ({ date, now, bookings, onCreate, onEdit }: Props) => {
+export const DaySchedule = ({ date, now, bookings, isStale, onCreate, onEdit }: Props) => {
   const t = useTranslations('booking.schedule');
   const nowLine = nowLinePosition(date, now);
+  const { preview, isDragging, handlers } = useDragSelect({
+    date,
+    now,
+    bookings,
+    onSelect: onCreate,
+  });
 
   return (
     <div className="grid grid-cols-[3.5rem_1fr] gap-x-2">
@@ -33,7 +42,15 @@ export const DaySchedule = ({ date, now, bookings, onCreate, onEdit }: Props) =>
           </li>
         ))}
       </ol>
-      <div className="relative h-144 rounded-lg border">
+      <div
+        {...handlers}
+        data-stale={isStale || undefined}
+        aria-busy={isStale}
+        className={cn(
+          'relative h-144 rounded-lg border transition-opacity data-stale:pointer-events-none data-stale:opacity-60',
+          isDragging && 'cursor-ns-resize select-none',
+        )}
+      >
         <ul aria-label={t('free')} className="flex h-full flex-col">
           {scheduleCells(date, now, bookings).map((cell) => (
             <li key={cell.start} className="flex-1 border-b border-dashed last:border-b-0">
@@ -67,6 +84,20 @@ export const DaySchedule = ({ date, now, bookings, onCreate, onEdit }: Props) =>
             </li>
           ))}
         </ol>
+        {preview && (
+          <div
+            role="status"
+            style={blockPosition(preview.start, preview.end)}
+            className={cn(
+              'pointer-events-none absolute inset-x-1 rounded-md border-2 border-dashed px-2 py-1 font-mono text-xs',
+              preview.isValid
+                ? 'border-info-border bg-info-soft/70 text-info-strong'
+                : 'border-danger-border bg-danger-soft/70 text-danger-strong',
+            )}
+          >
+            {preview.start}–{preview.end}
+          </div>
+        )}
         {nowLine && (
           <div
             aria-hidden

@@ -18,8 +18,10 @@ export {
 export type { BookingSlot, RuleViolation, RuleViolationCode } from './lib/bookingRules';
 export { ruleMessage } from './lib/ruleMessage';
 export { bookingQueryKeys } from './model/bookingQueryKeys';
+export { bookingsQueryOptions } from './model/bookingsQueryOptions';
 export {
   useBookingsQuery,
+  usePrefetchBookingsQuery,
   useCreateBookingMutation,
   useDeleteBookingMutation,
   useUpdateBookingMutation,

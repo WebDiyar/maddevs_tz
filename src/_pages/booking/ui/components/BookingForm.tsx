@@ -34,7 +34,7 @@ type Props = {
 };
 
 export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) => {
-  const { form, date, start, submit, changeDate, changeStart } = useBookingForm({
+  const { form, date, start, others, submit, changeDate, changeStart } = useBookingForm({
     editor,
     now,
     onSaved,
@@ -48,7 +48,9 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
       {errors.root?.server && (
         <Alert variant="destructive" role="alert">
           <AlertCircleIcon />
-          <AlertDescription>{errors.root.server.message}</AlertDescription>
+          <AlertDescription className="wrap-anywhere">
+            {errors.root.server.message}
+          </AlertDescription>
         </Alert>
       )}
       <FieldGroup className="grid grid-cols-2 gap-4">
@@ -66,7 +68,7 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
                 onChange={changeDate}
                 className="w-full"
               />
-              <FieldError errors={[fieldState.error]} />
+              <FieldError errors={[fieldState.error]} className="wrap-anywhere" />
             </Field>
           )}
         />
@@ -80,12 +82,12 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
                 id="booking-start"
                 value={field.value}
                 options={START_TIMES}
-                isOptionDisabled={(time) => isStartDisabled(time, date, now)}
+                isOptionDisabled={(time) => isStartDisabled(time, date, now, others)}
                 isInvalid={fieldState.invalid}
                 onChange={changeStart}
                 onBlur={field.onBlur}
               />
-              <FieldError errors={[fieldState.error]} />
+              <FieldError errors={[fieldState.error]} className="wrap-anywhere" />
             </Field>
           )}
         />
@@ -99,12 +101,12 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
                 id="booking-end"
                 value={field.value}
                 options={END_TIMES}
-                isOptionDisabled={(time) => Boolean(start) && isEndDisabled(time, start)}
+                isOptionDisabled={(time) => Boolean(start) && isEndDisabled(time, start, others)}
                 isInvalid={fieldState.invalid}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
               />
-              <FieldError errors={[fieldState.error]} />
+              <FieldError errors={[fieldState.error]} className="wrap-anywhere" />
             </Field>
           )}
         />
@@ -122,7 +124,7 @@ export const BookingForm = ({ editor, now, onSaved, onClose, onDelete }: Props) 
                 aria-invalid={fieldState.invalid}
                 autoComplete="off"
               />
-              <FieldError errors={[fieldState.error]} />
+              <FieldError errors={[fieldState.error]} className="wrap-anywhere" />
             </Field>
           )}
         />

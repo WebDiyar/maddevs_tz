@@ -39,20 +39,36 @@ export const unavailableDays = (today: Date): Matcher[] => [{ before: today }, W
 const isPastStart = (start: number, date: string, now: ZonedNow) =>
   date < now.date || (date === now.date && start < now.minutes);
 
-export const isStartDisabled = (start: string, date: string, now: ZonedNow) =>
-  isPastStart(toMinutes(start), date, now);
+const overlapsAny = (from: number, to: number, bookings: readonly Booking[]) =>
+  bookings.some((b) => from < toMinutes(b.end) && toMinutes(b.start) < to);
 
-export const isEndDisabled = (end: string, start: string) => {
-  const duration = toMinutes(end) - toMinutes(start);
-  return duration < MIN_DURATION_MIN || duration > MAX_DURATION_MIN;
+export const isStartDisabled = (
+  start: string,
+  date: string,
+  now: ZonedNow,
+  bookings: readonly Booking[],
+) => !isStartFree(toMinutes(start), date, now, bookings);
+
+export const isEndDisabled = (end: string, start: string, bookings: readonly Booking[]) => {
+  const from = toMinutes(start);
+  const to = toMinutes(end);
+  const duration = to - from;
+  return (
+    duration < MIN_DURATION_MIN || duration > MAX_DURATION_MIN || overlapsAny(from, to, bookings)
+  );
 };
 
-export const defaultEnd = (start: string) =>
-  toTime(Math.min(toMinutes(start) + DEFAULT_DURATION_MIN, DAY_END));
+export const defaultEnd = (start: string, bookings: readonly Booking[]) => {
+  const preferred = toTime(Math.min(toMinutes(start) + DEFAULT_DURATION_MIN, DAY_END));
+  if (!isEndDisabled(preferred, start, bookings)) return preferred;
+  const valid = END_TIMES.filter((end) => !isEndDisabled(end, start, bookings));
+  return valid.filter((end) => end <= preferred).at(-1) ?? valid[0] ?? preferred;
+};
 
 const isStartFree = (from: number, date: string, now: ZonedNow, bookings: readonly Booking[]) =>
   !isPastStart(from, date, now) &&
-  !bookings.some((b) => from < toMinutes(b.end) && toMinutes(b.start) < from + MIN_DURATION_MIN);
+  from <= DAY_END - MIN_DURATION_MIN &&
+  !overlapsAny(from, from + MIN_DURATION_MIN, bookings);
 
 export const firstFreeStart = (date: string, now: ZonedNow, bookings: readonly Booking[]) => {
   if (!isWorkday(date)) return null;
@@ -85,9 +101,7 @@ export const scheduleCells = (
   range(DAY_START, DAY_END - CELL_MIN, CELL_MIN).map((from) => {
     const candidates = range(from, from + CELL_MIN - SLOT_STEP_MIN, SLOT_STEP_MIN);
     const free = isWorkday(date)
-      ? candidates.find(
-          (start) => start <= DAY_END - MIN_DURATION_MIN && isStartFree(start, date, now, bookings),
-        )
+      ? candidates.find((start) => isStartFree(start, date, now, bookings))
       : undefined;
     return {
       start: toTime(from),
@@ -105,3 +119,78 @@ export const nowLinePosition = (date: string, now: ZonedNow) =>
   date === now.date && now.minutes >= DAY_START && now.minutes <= DAY_END
     ? `${((now.minutes - DAY_START) / DAY_LENGTH) * 100}%`
     : null;
+
+const ceilToStep = (minutes: number) => Math.ceil(minutes / SLOT_STEP_MIN) * SLOT_STEP_MIN;
+const floorToStep = (minutes: number) => Math.floor(minutes / SLOT_STEP_MIN) * SLOT_STEP_MIN;
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+export const pointerMinutes = (ratio: number) => DAY_START + clamp(ratio, 0, 1) * DAY_LENGTH;
+
+export type DragRange = { start: string; end: string; isValid: boolean };
+
+export const dragRange = (
+  anchorAt: number,
+  pointerAt: number,
+  date: string,
+  now: ZonedNow,
+  bookings: readonly Booking[],
+): DragRange | null => {
+  const anchor = floorToStep(anchorAt);
+  if (!isWorkday(date) || anchor >= DAY_END) return null;
+  if (isPastStart(anchor, date, now) || overlapsAny(anchor, anchor + SLOT_STEP_MIN, bookings)) {
+    return null;
+  }
+  const lower = Math.max(
+    DAY_START,
+    date === now.date ? ceilToStep(now.minutes) : DAY_START,
+    ...bookings.map((b) => toMinutes(b.end)).filter((end) => end <= anchor),
+  );
+  const upper = Math.min(
+    DAY_END,
+    ...bookings.map((b) => toMinutes(b.start)).filter((start) => start > anchor),
+  );
+  const [from, to] =
+    pointerAt >= anchor
+      ? [
+          anchor,
+          clamp(
+            ceilToStep(pointerAt),
+            anchor + SLOT_STEP_MIN,
+            Math.min(upper, anchor + MAX_DURATION_MIN),
+          ),
+        ]
+      : [
+          clamp(
+            floorToStep(pointerAt),
+            Math.max(lower, anchor + SLOT_STEP_MIN - MAX_DURATION_MIN),
+            anchor,
+          ),
+          anchor + SLOT_STEP_MIN,
+        ];
+  return { start: toTime(from), end: toTime(to), isValid: to - from >= MIN_DURATION_MIN };
+};
+
+export type DaySummary = { count: number; freeMinutes: number };
+
+export const daySummary = (
+  date: string,
+  now: ZonedNow,
+  bookings: readonly Booking[],
+): DaySummary => {
+  const from = date === now.date ? Math.max(DAY_START, ceilToStep(now.minutes)) : DAY_START;
+  const open = isWorkday(date) && date >= now.date ? Math.max(DAY_END - from, 0) : 0;
+  const busy = bookings.reduce(
+    (sum, b) => sum + Math.max(0, toMinutes(b.end) - Math.max(toMinutes(b.start), from)),
+    0,
+  );
+  return { count: bookings.length, freeMinutes: Math.max(open - busy, 0) };
+};
+
+const TIMELINE_HEIGHT_PX = 576;
+const BLOCK_CHROME_PX = 10;
+const TEXT_LINE_PX = 16;
+
+export const titleLines = (start: string, end: string) => {
+  const heightPx = ((toMinutes(end) - toMinutes(start)) / DAY_LENGTH) * TIMELINE_HEIGHT_PX;
+  return Math.floor((heightPx - BLOCK_CHROME_PX) / TEXT_LINE_PX) - 1;
+};

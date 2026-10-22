@@ -20,6 +20,8 @@ export const DateNav = ({ date, today, onChange }: Props) => {
         variant="outline"
         size="icon"
         aria-label={t('prev')}
+        aria-keyshortcuts="ArrowLeft"
+        title={t('prevHint')}
         onClick={() => onChange(shiftDate(date, -1))}
       >
         <ChevronLeftIcon />
@@ -29,11 +31,19 @@ export const DateNav = ({ date, today, onChange }: Props) => {
         variant="outline"
         size="icon"
         aria-label={t('next')}
+        aria-keyshortcuts="ArrowRight"
+        title={t('nextHint')}
         onClick={() => onChange(shiftDate(date, 1))}
       >
         <ChevronRightIcon />
       </Button>
-      <Button variant="ghost" disabled={date === today} onClick={() => onChange(today)}>
+      <Button
+        variant="ghost"
+        disabled={date === today}
+        aria-keyshortcuts="T"
+        title={t('todayHint')}
+        onClick={() => onChange(today)}
+      >
         {t('today')}
       </Button>
     </nav>
